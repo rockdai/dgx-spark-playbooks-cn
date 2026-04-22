@@ -64,23 +64,23 @@ website/build
 
 ## Docusaurus 配置建议
 
-当前 `docusaurus.config.ts` 已调整为更适合通用 Pages 平台的形式：
+当前 `docusaurus.config.ts` 已调整为适合当前独立域名部署的形式：
 
 ```ts
-url: 'https://example.com',
+url: 'https://dgx-spark.ai',
 baseUrl: '/',
 ```
 
 部署时请按实际访问域名修改：
 
-### 如果绑定独立域名并部署在根路径
+### 当前推荐, 绑定独立域名并部署在根路径
 
 ```ts
-url: 'https://docs.example.com',
+url: 'https://dgx-spark.ai',
 baseUrl: '/',
 ```
 
-### 如果部署在某个子路径下
+### 如果以后部署在某个子路径下
 
 例如：
 
@@ -98,6 +98,17 @@ baseUrl: '/dgx-spark-playbooks-cn/',
 - 少量文档中仍存在可继续清理的 HTML/Markdown 历史遗留写法
 
 这些问题不会阻止站点构建，但会影响部分页面间跳转体验。
+
+## ESA 配置文件
+
+仓库根目录已添加建议版 `esa.jsonc`，用于表达当前项目的 ESA Pages 部署意图：
+
+- 根目录项目子路径：`website`
+- 构建命令：`npm run build`
+- 静态输出目录：`build`
+- 目标域名：`dgx-spark.ai`
+
+如果 ESA 控制台字段和 `esa.jsonc` schema 完全一致，可以直接使用；如果命名略有差异，请以控制台实际字段为准。
 
 ## 项目说明
 

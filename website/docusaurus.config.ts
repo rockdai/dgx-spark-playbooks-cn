@@ -9,7 +9,7 @@ const config: Config = {
   future: {
     v4: true,
   },
-  url: 'https://example.com',
+  url: 'https://dgx-spark.ai',
   baseUrl: '/',
   organizationName: 'rockdai',
   projectName: 'dgx-spark-playbooks-cn',

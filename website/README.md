@@ -32,6 +32,21 @@ npm run build
 website/build
 ```
 
+## GitHub Pages 自动部署
+
+仓库中已经提供了 GitHub Actions 工作流：
+
+- `.github/workflows/deploy-pages.yml`
+
+默认行为：
+- 当 `main` 分支中的 `website/**` 发生变更时自动触发
+- 在 GitHub Actions 中执行 `npm install` 和 `npm run build`
+- 将构建产物 `website/build` 发布到 GitHub Pages
+
+如果你要启用它，需要在 GitHub 仓库设置中开启：
+
+- **Settings → Pages → Source = GitHub Actions**
+
 ## 阿里云 ESA Pages 部署建议
 
 从当前项目结构来看，这个站点适合以 **静态站点** 的方式部署到阿里云 **边缘安全加速 ESA Pages**。
@@ -44,6 +59,8 @@ website/build
 - **Install Command**: `npm install`
 - **Build Command**: `npm run build`
 - **Output Directory**: `build`
+
+如果 ESA Pages 支持从 GitHub 仓库拉取并自动构建，这套参数应该可以直接套用。
 
 ## Docusaurus 配置建议
 

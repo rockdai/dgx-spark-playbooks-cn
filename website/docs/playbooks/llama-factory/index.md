@@ -4,7 +4,7 @@ title: llama-factory
 sidebar_label: llama-factory
 ---
 
-# 骆驼工厂
+# LLaMA Factory
 
 > 使用 LLaMA Factory 安装和微调模型
 

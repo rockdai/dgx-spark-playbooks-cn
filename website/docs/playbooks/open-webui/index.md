@@ -4,7 +4,7 @@ title: open-webui
 sidebar_label: open-webui
 ---
 
-# 使用 Ollama 打开 WebUI
+# 结合 Ollama 使用 Open WebUI
 
 > 安装 Open WebUI 并使用 Ollama 与 Spark 上的模型聊天
 

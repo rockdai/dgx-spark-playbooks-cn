@@ -4,7 +4,7 @@ title: ollama
 sidebar_label: ollama
 ---
 
-# 奥拉马
+# Ollama
 
 > 安装和使用Ollama
 

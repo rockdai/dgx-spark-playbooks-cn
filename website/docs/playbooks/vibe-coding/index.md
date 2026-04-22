@@ -4,7 +4,7 @@ title: vibe-coding
 sidebar_label: vibe-coding
 ---
 
-# VS Code 中的 Vibe 编码
+# 在 VS Code 中进行 Vibe Coding
 
 > 使用 DGX Spark 作为 Ollama 的本地或远程 Vibe Coding 助手并继续
 

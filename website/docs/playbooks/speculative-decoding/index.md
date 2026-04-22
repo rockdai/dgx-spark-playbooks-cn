@@ -4,7 +4,7 @@ title: speculative-decoding
 sidebar_label: speculative-decoding
 ---
 
-# 推测性解码
+# 投机采样
 
 > 了解如何设置投机采样以在 Spark 上进行快速推理
 

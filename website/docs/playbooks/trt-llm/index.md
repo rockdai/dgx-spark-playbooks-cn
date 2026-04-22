@@ -4,7 +4,7 @@ title: trt-llm
 sidebar_label: trt-llm
 ---
 
-# TRT 推理法学硕士
+# 使用 TRT LLM 进行推理
 
 > 在 DGX Spark 上安装和使用 TensorRT-LLM
 

@@ -4,7 +4,7 @@ title: vscode
 sidebar_label: vscode
 ---
 
-# VS代码
+# VS Code
 
 > 本地或远程安装和使用 VS Code
 

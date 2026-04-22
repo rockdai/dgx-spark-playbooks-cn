@@ -14,11 +14,11 @@
 
 ## 基本思路
 
-部署 NVIDIA 的视频搜索和摘要 (VSS) AI 蓝图来构建结合了视觉语言模型、大型语言模型和检索增强生成的智能视频分析系统。该系统通过视频摘要、问答和实时警报将原始视频内容转化为实时可操作的见解。您将设置完全本地的 Event Reviewer 部署或使用远程模型端点的混合部署。
+部署 NVIDIA 的视频搜索和摘要 (VSS) AI Blueprint来构建结合了视觉语言模型、大型语言模型和检索增强生成的智能视频分析系统。该系统通过视频摘要、问答和实时警报将原始视频内容转化为实时可操作的见解。您将设置完全本地的 Event Reviewer 部署或使用远程模型端点的混合部署。
 
 ## 你将完成什么
 
-您将在采用 Blackwell 架构的 NVIDIA Spark 硬件上部署 NVIDIA 的 VSS AI 蓝图，并在两种部署方案之间进行选择：VSS Event Reviewer（使用 VLM 管道完全本地化）或标准 VSS（使用远程 LLM/嵌入端点的混合部署）。这包括设置警报桥、VLM 管道、警报检查器 UI、视频存储工具包和可选的 DeepStream CV 管道，以进行自动视频分析和事件审查。
+您将在采用 Blackwell 架构的 NVIDIA Spark 硬件上部署 NVIDIA 的 VSS AI Blueprint，并在两种部署方案之间进行选择：VSS Event Reviewer（使用 VLM 管道完全本地化）或标准 VSS（使用远程 LLM/嵌入端点的混合部署）。这包括设置警报桥、VLM 管道、警报检查器 UI、视频存储工具包和可选的 DeepStream CV 管道，以进行自动视频分析和事件审查。
 
 ## 开始之前需要了解什么
 

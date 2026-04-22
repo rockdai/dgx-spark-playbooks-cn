@@ -20,7 +20,7 @@ OpenClaw（以前称为 Clawdbot 和 Moltbot）是在您的计算机上运行的
 
 ## 你将完成什么
 
-您将在 DGX Spark 上安装 OpenClaw 并连接到本地 LLM（通过 LM Studio 或 Ollama）。您可以使用 OpenClaw Web UI 与您的客服人员聊天，并可选择连接沟通渠道和技能。智能体和模型完全在您的 Spark 上运行 - 除非您添加云或外部集成，否则数据不会离开您的计算机。
+您将在 DGX Spark 上安装 OpenClaw 并连接到本地 LLM（通过 LM Studio 或 Ollama）。您可以使用 OpenClaw Web UI 与您的助手聊天，并可选择连接通信通道和技能。智能体和模型完全在您的 Spark 上运行，除非您添加云或外部集成，否则数据不会离开您的计算机。
 
 ## 热门用例
 
@@ -37,7 +37,7 @@ OpenClaw（以前称为 Clawdbot 和 Moltbot）是在您的计算机上运行的
 
 ## 重要提示：安全和风险
 
-人工智能智能体可能会带来真正的风险。阅读 OpenClaw 的指南：[OpenClaw Gateway Security](https://docs.openclaw.ai/gateway/security)。
+AI 智能体可能会带来真正的风险。阅读 OpenClaw 的指南：[OpenClaw Gateway Security](https://docs.openclaw.ai/gateway/security)。
 
 主要风险：
 

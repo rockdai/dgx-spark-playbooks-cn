@@ -1,4 +1,4 @@
-# NemoClaw 与 Nemotron 3 Super 和 DGX Spark 上的 Telegram
+# 在 DGX Spark 上使用 NemoClaw、Nemotron 3 Super 与 Telegram
 
 > 在 DGX Spark 上安装 NemoClaw，并集成本地 Ollama 推理和 Telegram 机器人
 

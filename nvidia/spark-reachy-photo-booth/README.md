@@ -1,4 +1,4 @@
-# Spark & Reachy 照相亭
+# Spark 与 Reachy 拍照亭
 
 > 使用 DGX Spark 和 Reachy Mini 的 AI 增强照相亭。
 

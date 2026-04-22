@@ -1,4 +1,4 @@
-# 安装和使用 Isaac Sim 和 Isaac Lab
+# 安装并使用 Isaac Sim 与 Isaac Lab
 
 > 在 Spark 上从源码构建 Isaac Sim 和 Isaac Lab
 

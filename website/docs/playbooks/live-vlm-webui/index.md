@@ -4,7 +4,7 @@ title: live-vlm-webui
 sidebar_label: live-vlm-webui
 ---
 
-# 实时 VLM WebUI
+# Live VLM WebUI
 
 > 与网络摄像头流的实时视觉语言模型交互
 

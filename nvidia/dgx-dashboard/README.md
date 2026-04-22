@@ -1,4 +1,4 @@
-# DGX 仪表板
+# DGX Dashboard
 
 > 监控你的 DGX 系统并启动 JupyterLab
 

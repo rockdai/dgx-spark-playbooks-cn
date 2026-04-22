@@ -4,7 +4,7 @@ title: connect-two-sparks
 sidebar_label: connect-two-sparks
 ---
 
-# 连接两个火花
+# 连接两台 DGX Spark
 
 > 连接两台 Spark 设备，并将其配置为可进行推理和微调
 

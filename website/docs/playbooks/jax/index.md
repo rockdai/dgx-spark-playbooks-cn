@@ -4,7 +4,7 @@ title: jax
 sidebar_label: jax
 ---
 
-# 优化的 JAX
+# 优化版 JAX
 
 > 为 Spark 优化 JAX 运行环境
 

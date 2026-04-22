@@ -4,7 +4,7 @@ title: rag-ai-workbench
 sidebar_label: rag-ai-workbench
 ---
 
-# RAG在AI Workbench中的应用
+# 在 AI Workbench 中构建 RAG 应用
 
 > 安装并使用 AI Workbench 克隆并运行可重现的 RAG 应用程序
 

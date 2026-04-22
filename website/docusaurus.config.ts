@@ -130,7 +130,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} DGX Spark 中文社区。Community-maintained, built with Docusaurus.`,
+      copyright: `Community Notice: This website is a community-driven Chinese translation based on the official DGX Spark Playbooks. It is made by the community and love, and is not affiliated with, endorsed by, or maintained by NVIDIA.`,
     },
     prism: {
       theme: prismThemes.github,

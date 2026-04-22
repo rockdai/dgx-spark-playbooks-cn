@@ -214,13 +214,6 @@
   background: rgba(255,255,255,0.03);
 }
 
-.bottomNotice {
-  margin-top: 2rem;
-  color: rgba(229,231,235,0.58);
-  font-size: 0.9rem;
-  line-height: 1.7;
-  text-align: center;
-}
 
 .quickLinks {
   display: flex;

@@ -110,11 +110,6 @@ export default function Home(): ReactNode {
           </div>
         </section>
 
-        <section className="container margin-vert--lg">
-          <p className={styles.bottomNotice}>
-            Community Notice: This website is a community-driven Chinese translation based on the official DGX Spark Playbooks. It is made by the community and love, and is not affiliated with, endorsed by, or maintained by NVIDIA.
-          </p>
-        </section>
       </main>
     </Layout>
   );

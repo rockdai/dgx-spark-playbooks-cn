@@ -4,7 +4,7 @@ title: comfy-ui
 sidebar_label: comfy-ui
 ---
 
-# 舒适的用户界面
+# Comfy UI
 
 > 安装并使用 Comfy UI 生成图像
 

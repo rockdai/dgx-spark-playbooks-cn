@@ -47,16 +47,42 @@ const config: Config = {
     },
     navbar: {
       title: 'DGX Spark 中文手册',
+      hideOnScroll: true,
       logo: {
         alt: 'DGX Spark 中文手册',
         src: 'img/logo.svg',
       },
       items: [
         {
+          to: '/intro',
+          label: '开始',
+          position: 'left',
+        },
+        {
+          to: '/playbooks/connect-to-your-spark/',
+          label: '连接',
+          position: 'left',
+        },
+        {
+          to: '/playbooks/vllm/',
+          label: '推理',
+          position: 'left',
+        },
+        {
+          to: '/playbooks/pytorch-fine-tune/',
+          label: '微调',
+          position: 'left',
+        },
+        {
+          to: '/playbooks/openclaw/',
+          label: '应用',
+          position: 'left',
+        },
+        {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
           position: 'left',
-          label: '文档',
+          label: '全部文档',
         },
         {
           href: 'https://github.com/rockdai/dgx-spark-playbooks-cn',
@@ -100,11 +126,11 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} DGX Spark 中文手册社区项目。Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} DGX Spark 中文手册社区项目。Community-maintained, built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
+      darkTheme: prismThemes.vsDark,
     },
   } satisfies Preset.ThemeConfig,
 };

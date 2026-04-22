@@ -1,23 +1,235 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
-.heroBanner {
-  padding: 4rem 0;
-  text-align: center;
+.hero {
   position: relative;
   overflow: hidden;
+  padding: 7rem 0 5rem;
+  background:
+    radial-gradient(circle at top left, rgba(118, 255, 76, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(118, 255, 76, 0.08), transparent 24%),
+    linear-gradient(180deg, #0b0f0c 0%, #111712 100%);
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
+.heroInner {
+  max-width: 880px;
+}
+
+.kicker {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid rgba(118, 255, 76, 0.24);
+  border-radius: 999px;
+  color: #9fe870;
+  background: rgba(118, 255, 76, 0.08);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin-bottom: 1rem;
+  color: #f5f7f2;
+  font-size: clamp(2.4rem, 6vw, 4.8rem);
+  line-height: 1.02;
+}
+
+.subtitle {
+  max-width: 760px;
+  color: rgba(245, 247, 242, 0.78);
+  font-size: 1.08rem;
+  line-height: 1.75;
+}
+
+.ctaRow {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 2rem;
+}
+
+.statCard {
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+}
+
+.statValue {
+  display: block;
+  color: #f5f7f2;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.statLabel {
+  display: block;
+  margin-top: 0.25rem;
+  color: rgba(245,247,242,0.66);
+  font-size: 0.92rem;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.2rem;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 0.75rem;
+  color: #f5f7f2;
+  text-decoration: none;
+  background: rgba(255,255,255,0.04);
+  transition: all 0.2s ease;
+}
+
+.secondaryButton:hover {
+  text-decoration: none;
+  border-color: rgba(118,255,76,0.32);
+  background: rgba(118,255,76,0.08);
+  color: #b5ff88;
+}
+
+.main {
+  background: #0d120f;
+  padding-bottom: 4rem;
+}
+
+.sectionHeader {
+  margin-bottom: 1.5rem;
+}
+
+.sectionHeader h2,
+.panel h2,
+.noticeBox h2 {
+  color: #f5f7f2;
+}
+
+.sectionHeader p,
+.panel p,
+.noticeBox p {
+  color: rgba(245, 247, 242, 0.72);
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 996px) {
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-.buttons {
+.card {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  text-decoration: none;
+  color: inherit;
+  min-height: 220px;
+}
+
+.card:hover {
+  text-decoration: none;
+  transform: translateY(-2px);
+  border-color: rgba(118,255,76,0.22);
+}
+
+.cardGlow {
+  position: absolute;
+  inset: auto -60px -60px auto;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, rgba(118,255,76,0.18), transparent 70%);
+  pointer-events: none;
+}
+
+.cardEyebrow {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  color: #9fe870;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.card h3 {
+  color: #f5f7f2;
+  margin-bottom: 0.75rem;
+}
+
+.card p {
+  color: rgba(245,247,242,0.74);
+  line-height: 1.7;
+}
+
+.cardAction {
+  display: inline-block;
+  margin-top: 1rem;
+  color: #9fe870;
+  font-weight: 600;
+}
+
+.panel,
+.noticeBox {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+}
+
+.dualPanel {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.quickLinks {
   display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.quickLink {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(118,255,76,0.08);
+  border: 1px solid rgba(118,255,76,0.18);
+  color: #c8ff9f;
+  text-decoration: none;
+}
+
+.quickLink:hover {
+  text-decoration: none;
+  background: rgba(118,255,76,0.12);
+}
+
+@media (min-width: 996px) {
+  .statsRow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dualPanel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 996px) {
+  .hero {
+    padding: 5rem 0 4rem;
+  }
 }

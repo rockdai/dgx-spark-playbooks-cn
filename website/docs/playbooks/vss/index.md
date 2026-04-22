@@ -4,7 +4,7 @@ title: vss
 sidebar_label: vss
 ---
 
-# 构建视频搜索和摘要 (VSS) 代理
+# 构建视频搜索和摘要 (VSS) 智能体
 
 > 在 Spark 上运行 VSS 蓝图
 
@@ -259,7 +259,7 @@ hostname
 curl -I `http://SPARK_IP_OR_HOSTNAME:3000`
 ```
 
-在浏览器中打开`http://localhost:3000`或`http://SPARK_IP_OR_HOSTNAME:3000`以访问代理界面。
+在浏览器中打开`http://localhost:3000`或`http://SPARK_IP_OR_HOSTNAME:3000`以访问智能体界面。
 
 ## 步骤 8. 测试视频处理工作流程
 
@@ -267,8 +267,8 @@ curl -I `http://SPARK_IP_OR_HOSTNAME:3000`
 
 **对于标准 VSS 部署**
 
-按照步骤 [here](https://docs.nvidia.com/vss/latest/quickstart.html#deploy) 导航 VSS 代理 UI。
-- 访问 `http://localhost:3000` 处的 VSS 代理界面
+按照步骤 [here](https://docs.nvidia.com/vss/latest/quickstart.html#deploy) 导航 VSS 智能体 UI。
+- 访问 `http://localhost:3000` 处的 VSS 智能体界面
 - 从 NGC [here](https://docs.nvidia.com/vss/latest/quickstart.html#download-sample-data-from-ngc) 下载样本数据并上传视频和测试功能 [here](https://docs.nvidia.com/vss/latest/quickstart.html#download-sample-data-from-ngc)
   
 

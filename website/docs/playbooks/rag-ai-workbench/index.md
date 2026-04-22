@@ -20,15 +20,15 @@ sidebar_label: rag-ai-workbench
 
 ## 基本思路
 
-本演练演示了如何设置和运行代理检索增强生成 (RAG)
-使用 NVIDIA AI Workbench 的项目。您将使用 AI Workbench 克隆并运行预构建的代理 RAG
+本演练演示了如何设置和运行智能体检索增强生成 (RAG)
+使用 NVIDIA AI Workbench 的项目。您将使用 AI Workbench 克隆并运行预构建的智能体 RAG
 智能路由查询、评估响应的相关性和幻觉的应用程序，以及
 迭代评估和生成周期。该项目使用Gradio Web界面并且可以工作
 具有 NVIDIA 托管的 API 端点或自托管模型。
 
 ## 你将完成什么
 
-您将拥有一个在 NVIDIA AI Workbench 中运行的功能齐全的代理 RAG 应用程序，并带有 Web
+您将拥有一个在 NVIDIA AI Workbench 中运行的功能齐全的智能体 RAG 应用程序，并带有 Web
 您可以在其中提交查询并接收智能响应的界面。系统将演示
 高级 RAG 功能，包括查询路由、响应评估和迭代细化，
 让您亲身体验 AI Workbench 的开发环境和复杂的 RAG
@@ -93,9 +93,9 @@ sidebar_label: rag-ai-workbench
 
 保持这两个密钥可供下一步使用。
 
-## 步骤 3. 克隆代理 RAG 项目
+## 步骤 3. 克隆智能体 RAG 项目
 
-然后，您可以将预构建的代理 RAG 项目从 GitHub 克隆到您的 AI Workbench 环境中。
+然后，您可以将预构建的智能体 RAG 项目从 GitHub 克隆到您的 AI Workbench 环境中。
 
 在 AI Workbench 登录页面中，选择 **本地** 位置（如果尚未这样做），然后单击右上角的“克隆项目”。
 
@@ -105,7 +105,7 @@ sidebar_label: rag-ai-workbench
 
 ## 步骤 4. 配置项目机密
 
-然后，您可以配置代理 RAG 应用程序正常运行所需的 API 密钥。
+然后，您可以配置智能体 RAG 应用程序正常运行所需的 API 密钥。
 
 项目构建时，使用出现的黄色警告横幅配置 API 密钥：
 
@@ -118,7 +118,7 @@ sidebar_label: rag-ai-workbench
 
 ## 步骤 5. 启动聊天应用程序
 
-您现在可以启动基于 Web 的聊天界面，在其中可以与代理 RAG 系统进行交互。
+您现在可以启动基于 Web 的聊天界面，在其中可以与智能体 RAG 系统进行交互。
 
 导航到 **环境** > **项目容器** > **应用程序** > **聊天** 并启动 Web 应用程序。
 
@@ -126,11 +126,11 @@ sidebar_label: rag-ai-workbench
 
 ## 步骤 6. 测试基本功能
 
-通过提交示例查询来验证代理 RAG 系统是否正常工作。
+通过提交示例查询来验证智能体 RAG 系统是否正常工作。
 
 在聊天应用程序中，单击或键入示例查询，例如：`How do I add an integration in the CLI?`
 
-等待代理系统处理并响应。响应虽然一般，但应该展示智能路由和评估。 
+等待智能体系统处理并响应。响应虽然一般，但应该展示智能路由和评估。 
 
 ## 步骤 7. 验证项目
 
@@ -141,7 +141,7 @@ sidebar_label: rag-ai-workbench
 * Web 应用程序加载无错误
 * 示例查询返回响应
 * 没有出现 API 身份验证错误
-* 代理推理过程在“Monitor”下的界面中可见
+* 智能体推理过程在“Monitor”下的界面中可见
 
 ## 步骤 8. 完成可选的快速入门
 
@@ -176,9 +176,9 @@ sidebar_label: rag-ai-workbench
 * 修改项目代码中的组件提示
 * 上传不同的文档来测试路由和定制
 * 尝试不同的查询类型和复杂程度
-* 查看“监控”选项卡中的代理推理日志以了解决策
+* 查看“监控”选项卡中的智能体推理日志以了解决策
 
-考虑自定义 Gradio UI 或将代理 RAG 组件集成到您自己的项目中。
+考虑自定义 Gradio UI 或将智能体 RAG 组件集成到您自己的项目中。
 
 ## 故障排除
 
@@ -187,7 +187,7 @@ sidebar_label: rag-ai-workbench
 | 泰维利 API 错误 | 互联网连接或 DNS 问题 | 等待并重试查询 |
 | 401 未经授权 | API 密钥错误或格式错误 | 替换 Project Secrets 中的密钥并重新启动 |
 | 403 未经授权 | API密钥缺少权限 | 生成具有正确访问权限的新密钥 |
-| 代理循环超时 | 复杂查询超出时间限制 | 尝试更简单的查询或重试 |
+| 智能体循环超时 | 复杂查询超出时间限制 | 尝试更简单的查询或重试 |
 
 
 有关最新的已知问题，请查看 [DGX Spark User Guide](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。

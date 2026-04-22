@@ -20,7 +20,7 @@
   - [Step 11. Validate API server](#step-11-validate-api-server)
   - [Step 12. Cleanup and rollback](#step-12-cleanup-and-rollback)
   - [Step 13. Next steps](#step-13-next-steps)
-- [Open WebUI for TensorRT-LLM](#open-webui-for-tensorrt-llm)
+- [Open WebUI for TensorRT-LLM](#open-webui-for-TensorRT-LLM)
   - [Step 1. Set up the prerequisites to use Open WebUI with TRT-LLM](#step-1-set-up-the-prerequisites-to-use-open-webui-with-trt-llm)
   - [Step 2. Launch Open WebUI container](#step-2-launch-open-webui-container)
   - [Step 3. Access the Open WebUI interface](#step-3-access-the-open-webui-interface)
@@ -294,7 +294,7 @@ sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 ```bash
 export MODEL_HANDLE="nvidia/Llama-3.1-8B-Instruct-FP4"
 
-docker run --name trtllm_llm_server --rm -it --gpus all --ipc host --network host \
+docker run --name TRT LLM_llm_server --rm -it --gpus all --ipc host --network host \
   -e HF_TOKEN=$HF_TOKEN \
   -e MODEL_HANDLE="$MODEL_HANDLE" \
   -v $HOME/.cache/huggingface/:/root/.cache/huggingface/ \
@@ -322,7 +322,7 @@ EOF
 ```bash
 export MODEL_HANDLE="openai/gpt-oss-20b"
 
-docker run --name trtllm_llm_server --rm -it --gpus all --ipc host --network host \
+docker run --name TRT LLM_llm_server --rm -it --gpus all --ipc host --network host \
   -e HF_TOKEN=$HF_TOKEN \
   -e MODEL_HANDLE="$MODEL_HANDLE" \
   -v $HOME/.cache/huggingface/:/root/.cache/huggingface/ \
@@ -495,7 +495,7 @@ docker cp ~/openmpi-hostfile trtllm-multinode:/etc/openmpi-hostfile
 在主节点上，为了方便起见，将容器名称保存在变量中：
 
 ```bash
-export TRTLLM_MN_CONTAINER=trtllm-multinode
+export TRT LLM_MN_CONTAINER=trtllm-multinode
 ```
 
 ### 步骤8.生成配置文件
@@ -503,7 +503,7 @@ export TRTLLM_MN_CONTAINER=trtllm-multinode
 在主节点上，在容器内生成配置文件：
 
 ```bash
-docker exec $TRTLLM_MN_CONTAINER bash -c 'cat <<EOF > /tmp/extra-llm-api-config.yml
+docker exec $TRT LLM_MN_CONTAINER bash -c 'cat <<EOF > /tmp/extra-llm-api-config.yml
 print_iter_log: false
 kv_cache_config:
   dtype: "auto"
@@ -524,7 +524,7 @@ export HF_TOKEN=<your-huggingface-token>
 docker exec \
   -e MODEL="nvidia/Qwen3-235B-A22B-FP4" \
   -e HF_TOKEN=$HF_TOKEN \
-  -it $TRTLLM_MN_CONTAINER bash -c 'mpirun -x HF_TOKEN bash -c "hf download $MODEL"'
+  -it $TRT LLM_MN_CONTAINER bash -c 'mpirun -x HF_TOKEN bash -c "hf download $MODEL"'
 ```
 
 ### 步骤 10. 为模型提供服务
@@ -535,7 +535,7 @@ docker exec \
 docker exec \
   -e MODEL="nvidia/Qwen3-235B-A22B-FP4" \
   -e HF_TOKEN=$HF_TOKEN \
-  -it $TRTLLM_MN_CONTAINER bash -c '
+  -it $TRT LLM_MN_CONTAINER bash -c '
     mpirun -x HF_TOKEN trtllm-llmapi-launch trtllm-serve $MODEL \
       --tp_size 2 \
       --backend pytorch \
@@ -683,7 +683,7 @@ docker rmi ghcr.io/open-webui/open-webui:main
 | 容器立即退出 | 缺少入口点脚本 | 确保 `trtllm-mn-entrypoint.sh` 下载成功并具有可执行权限，还要确保您没有在节点上运行容器。如果端口 2233 已被使用，则入口点脚本将不会启动。 |
 | 来自守护程序的错误响应：验证根 CA 证书时出错 | 系统时钟不同步或证书过期 | 更新系统时间以与 NTP 服务器 `sudo timedatectl set-ntp true` 同步|
 | “类型‘绑定’的安装配置无效” | 入口点脚本丢失或不可执行 | 运行 `docker inspect <container_id>` 查看完整的错误消息。验证 `trtllm-mn-entrypoint.sh` 存在于主目录 (`ls -la $HOME/trtllm-mn-entrypoint.sh`) 的两个节点上并且具有可执行权限 (`chmod +x $HOME/trtllm-mn-entrypoint.sh`) |
-| “任务：非零退出（255）” | 容器退出，错误代码为 255 | 使用 `docker ps -a --filter "name=trtllm-multinode_trtllm"` 检查容器日志以获取容器 ID，然后使用 `docker logs <container_id>` 查看详细的错误消息 |
+| “任务：非零退出（255）” | 容器退出，错误代码为 255 | 使用 `docker ps -a --filter "name=trtllm-multinode_TRT LLM"` 检查容器日志以获取容器 ID，然后使用 `docker logs <container_id>` 查看详细的错误消息 |
 | Docker 状态停留在“待处理”状态，并显示“没有合适的节点（不足...）” | Docker 守护进程未正确配置 GPU 访问 | 验证步骤 2-4 是否已成功完成，并检查 `/etc/docker/daemon.json` 是否包含正确的 GPU 配置 |
 | 服务模型失败 `ptxas fatal` 错误 | 模型需要运行时 triton 内核编译 | 在步骤 10 中，将 `-x TRITON_PTXAS_PATH` 添加到 `mpirun` 命令中 |
 

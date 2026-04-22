@@ -4,9 +4,9 @@ title: multi-agent-chatbot
 sidebar_label: multi-agent-chatbot
 ---
 
-# 构建和部署多代理聊天机器人
+# 构建和部署多智能体聊天机器人
 
-> 部署多代理聊天机器人系统并与 Spark 上的代理聊天
+> 部署多智能体聊天机器人系统并与 Spark 上的智能体聊天
 
 ## 目录
 
@@ -20,22 +20,22 @@ sidebar_label: multi-agent-chatbot
 
 ## 基本思路
 
-本手册向您展示了如何使用 DGX Spark 进行原型设计、构建和部署完全本地的多代理系统。 
-凭借 128GB 统一内存，DGX Spark 可以并行运行多个 LLM 和 VLM，从而实现跨代理的交互。
+本手册向您展示了如何使用 DGX Spark 进行原型设计、构建和部署完全本地的多智能体系统。 
+凭借 128GB 统一内存，DGX Spark 可以并行运行多个 LLM 和 VLM，从而实现跨智能体的交互。
 
-其核心是由 gpt-oss-120B 提供支持的主管代理，协调专门的下游代理以进行编码、检索增强生成 (RAG) 和图像理解。 
+其核心是由 gpt-oss-120B 提供支持的主管智能体，协调专门的下游智能体以进行编码、检索增强生成 (RAG) 和图像理解。 
 得益于 DGX Spark 对流行 AI 框架和库的开箱即用支持，开发和原型设计变得快速且顺畅。 
 这些组件共同展示了如何在本地高性能硬件上高效执行复杂的multimodal工作流程。
 
 ## 你将完成什么
 
-您将在 DGX Spark 上运行一个全栈多代理聊天机器人系统，可通过
+您将在 DGX Spark 上运行一个全栈多智能体聊天机器人系统，可通过
 您本地的网络浏览器。 
 设置包括：
 - 使用 llama.cpp 服务器和 TensorRT LLM 服务器提供 LLM 和 VLM 模型服务
 - 用于模型推理和文档检索的 GPU 加速
-- 使用由 gpt-oss-120B 提供支持的主管代理进行多代理系统编排
-- MCP（模型上下文协议）服务器作为主管代理的工具
+- 使用由 gpt-oss-120B 提供支持的主管智能体进行多智能体系统编排
+- MCP（模型上下文协议）服务器作为主管智能体的工具
 
 ## 先决条件
 
@@ -120,10 +120,10 @@ watch 'docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Status}}"'
 
 ## 步骤 6. 尝试示例提示
 
-单击前端的任何图块即可试用主管和其他代理。
+单击前端的任何图块即可试用主管和其他智能体。
 
-**RAG 代理**：
-在尝试 RAG 代理的示例提示之前，请上传示例 PDF 文档 [NVIDIA Blackwell Whitepaper](https://images.nvidia.com/aem-dam/Solutions/geforce/blackwell/nvidia-rtx-blackwell-gpu-architecture.pdf) 
+**RAG 智能体**：
+在尝试 RAG 智能体的示例提示之前，请上传示例 PDF 文档 [NVIDIA Blackwell Whitepaper](https://images.nvidia.com/aem-dam/Solutions/geforce/blackwell/nvidia-rtx-blackwell-gpu-architecture.pdf) 
 作为上下文，转到链接，将 PDF 下载到本地文件系统，单击左侧边栏中“上下文”下的绿色“上传文档”按钮，然后确保选中“选择源”部分中的框。
 
 ## 步骤 8. 清理和回滚
@@ -140,9 +140,9 @@ docker volume rm "$(basename "$PWD")_postgres_data"
 
 ## 步骤 9. 后续步骤
 
-- 使用多代理聊天机器人系统尝试不同的提示。
+- 使用多智能体聊天机器人系统尝试不同的提示。
 - 按照存储库中的说明尝试不同的模型。
-- 尝试添加新的 MCP（模型上下文协议）服务器作为主管代理的工具。
+- 尝试添加新的 MCP（模型上下文协议）服务器作为主管智能体的工具。
 
 ## 故障排除
 

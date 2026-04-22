@@ -23,7 +23,7 @@ sidebar_label: llama-cpp
 
 [llama.cpp](https://github.com/ggml-org/llama.cpp) 是用于大型语言模型的轻量级 C/C++ 推理堆栈。您可以使用 CUDA 构建它，以便张量工作在 DGX Spark GB10 GPU 上运行，然后加载 GGUF 权重并通过 `llama-server` 的 OpenAI 兼容 HTTP API 公开聊天。
 
-本剧本从头到尾地遍历该堆栈。作为模型示例，它使用 **Gemma 4 31B IT** - 由 Google DeepMind 构建的前沿推理模型，llama.cpp 支持，在编码、代理工作流程和微调方面具有优势。说明从 Hugging Face 下载其 **F16** GGUF。相同的构建和服务器步骤适用于其他 GGUF（包括下面支持矩阵中的其他大小）。
+本剧本从头到尾地遍历该堆栈。作为模型示例，它使用 **Gemma 4 31B IT** - 由 Google DeepMind 构建的前沿推理模型，llama.cpp 支持，在编码、智能体工作流程和微调方面具有优势。说明从 Hugging Face 下载其 **F16** GGUF。相同的构建和服务器步骤适用于其他 GGUF（包括下面支持矩阵中的其他大小）。
 
 ## 你将完成什么
 

@@ -14,15 +14,15 @@
 
 ## 基本思路
 
-ComfyUI 是一款开源 Web 服务器应用程序，用于使用 SDXL、Flux 等基于扩散的模型生成 AI 图像。它具有基于浏览器的 UI，可让您通过多个步骤创建、编辑和运行图像生成和编辑工作流程。这些生成和编辑步骤（例如，加载模型、添加文本或采样）可在 UI 中配置为节点，并且您可以使用电线连接节点以形成工作流程。
+Comfy UI 是一款开源 Web 服务器应用程序，用于使用 SDXL、Flux 等基于扩散的模型生成 AI 图像。它具有基于浏览器的 UI，可让您通过多个步骤创建、编辑和运行图像生成和编辑工作流程。这些生成和编辑步骤（例如，加载模型、添加文本或采样）可在 UI 中配置为节点，并且您可以使用电线连接节点以形成工作流程。
 
-ComfyUI 使用主机的 GPU 进行推理，因此您可以将其安装在 DGX Spark 上，并直接在设备上进行所有图像生成和编辑。  
+Comfy UI 使用主机的 GPU 进行推理，因此您可以将其安装在 DGX Spark 上，并直接在设备上进行所有图像生成和编辑。  
 
 工作流程保存为 JSON 文件，因此您可以对它们进行版本控制，以供将来的工作、协作和可重复性使用。
 
 ## 你将完成什么
 
-您将在 NVIDIA DGX Spark 设备上安装并配置 ComfyUI，以便可以使用统一内存来处理大型模型。
+您将在 NVIDIA DGX Spark 设备上安装并配置 Comfy UI，以便可以使用统一内存来处理大型模型。
 
 ## 开始之前需要了解什么
 
@@ -49,10 +49,10 @@ ComfyUI 使用主机的 GPU 进行推理，因此您可以将其安装在 DGX Sp
 
 ## 附属文件
 
-所有需要的资源都可以在[in the ComfyUI repository on GitHub](https://github.com/comfyanonymous/ComfyUI)找到
+所有需要的资源都可以在[in the Comfy UI repository on GitHub](https://github.com/comfyanonymous/ComfyUI)找到
 
-- `requirements.txt` - ComfyUI 安装的 Python 依赖项
-- `main.py` - 主要 ComfyUI 服务器应用程序入口点
+- `requirements.txt` - Comfy UI 安装的 Python 依赖项
+- `main.py` - 主要 Comfy UI 服务器应用程序入口点
 - `v1-5-pruned-emaonly-fp16.safetensors` - 稳定扩散 1.5 检查点模型
 
 ## 时间与风险
@@ -63,7 +63,7 @@ ComfyUI 使用主机的 GPU 进行推理，因此您可以将其安装在 DGX Sp
   * 端口 8188 必须可访问以用于 Web 界面功能
 * **Rollback:** 可以删除虚拟环境以删除所有已安装的软件包。可以从检查点目录中手动删除下载的模型。
 * **最后更新：** 2025 年 10 月 11 日
-  * 将 ComfyUI PyTorch 更新至 CUDA 13.0
+  * 将 Comfy UI PyTorch 更新至 CUDA 13.0
 
 ## 指示
 
@@ -82,7 +82,7 @@ nvidia-smi
 
 ## 步骤2.创建Python虚拟环境
 
-您将在主机系统上安装 ComfyUI，因此您应该创建一个隔离的环境以避免与系统软件包发生冲突。
+您将在主机系统上安装 Comfy UI，因此您应该创建一个隔离的环境以避免与系统软件包发生冲突。
 
 ```bash
 python3 -m venv comfyui-env
@@ -101,18 +101,18 @@ pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu13
 
 此安装的目标是 CUDA 13.0 与 Blackwell 架构 GPU 兼容。
 
-## 步骤 4. 克隆 ComfyUI 存储库
+## 步骤 4. 克隆 Comfy UI 存储库
 
-从官方存储库下载 ComfyUI 源代码。
+从官方存储库下载 Comfy UI 源代码。
 
 ```bash
 git clone https://github.com/comfyanonymous/ComfyUI.git
 cd ComfyUI/
 ```
 
-## 步骤 5. 安装 ComfyUI 依赖项
+## 步骤 5. 安装 Comfy UI 依赖项
 
-安装 ComfyUI 操作所需的 Python 包。
+安装 Comfy UI 操作所需的 Python 包。
 
 ```bash
 pip install -r requirements.txt
@@ -132,9 +132,9 @@ cd ../../
 
 下载大小约为 2GB，可能需要几分钟时间，具体取决于网络速度。
 
-## 步骤 7. 启动 ComfyUI 服务器
+## 步骤 7. 启动 Comfy UI 服务器
 
-启动 ComfyUI Web 服务器并启用网络访问。
+启动 Comfy UI Web 服务器并启用网络访问。
 
 ```bash
 python main.py --listen 0.0.0.0
@@ -144,7 +144,7 @@ python main.py --listen 0.0.0.0
 
 ## 步骤 8. 验证安装
 
-检查 ComfyUI 是否正确运行并可以通过网络浏览器访问。
+检查 Comfy UI 是否正确运行并可以通过网络浏览器访问。
 
 ```bash
 curl -I http://localhost:8188

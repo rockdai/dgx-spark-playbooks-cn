@@ -15,7 +15,7 @@ Before running any benchmarks, ensure the following prerequisites are met for yo
 ## This guide includes benchmarking instructions for:
 
 ### Single Spark
-- **[TensorRT-LLM (TRT-LLM)](#tensorrt-llm-trt-llm)**
+- **[TensorRT-LLM (TRT-LLM)](#TensorRT-LLM-trt-llm)**
   - [Offline](#offline-benchmark)
   - [Online](#online-benchmark)
 - **[vLLM](#vllm)**

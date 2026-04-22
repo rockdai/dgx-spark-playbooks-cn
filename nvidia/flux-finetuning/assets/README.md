@@ -1,6 +1,6 @@
 # FLUX.1 使用 LoRA 进行微调
 
-该项目演示了使用 Dreambooth LoRA（低阶适应）微调 FLUX.1-dev 12B 模型以生成自定义图像。该演示包括通过命令行脚本和 ComfyUI 进行自定义概念和推理的培训。 
+该项目演示了使用 Dreambooth LoRA（低阶适应）微调 FLUX.1-dev 12B 模型以生成自定义图像。该演示包括通过命令行脚本和 Comfy UI 进行自定义概念和推理的培训。 
 
 ## 概述
 
@@ -8,7 +8,7 @@
 - **FLUX.1-dev Fine-tuning**：基于LoRA的微调
 - **自定义概念训练**：在“tjtoy”玩具和“sparkgpu”GPU 上进行训练
 - **命令行推理**：使用经过训练的 LoRA 权重生成图像
-- **ComfyUI 集成**：使用自定义模型进行推理的直观工作流程
+- **Comfy UI 集成**：使用自定义模型进行推理的直观工作流程
 - **Docker 支持**：完整的容器化环境
 
 ## 内容
@@ -71,17 +71,17 @@ models/
 
 ```bash
 # Build the inference docker image
-docker build -f Dockerfile.inference -t flux-comfyui .
+docker build -f Dockerfile.inference -t flux-Comfy UI .
 
-# Launch the ComfyUI container (ensure you are inside flux-finetuning/assets)
+# Launch the Comfy UI container (ensure you are inside flux-finetuning/assets)
 # You can ignore any import errors for `torchaudio`
-sh launch_comfyui.sh
+sh launch_Comfy UI.sh
 ```
-访问 `http://localhost:8188` 处的 ComfyUI 以使用基本模型生成图像。不要选择任何预先存在的模板。
+访问 `http://localhost:8188` 处的 Comfy UI 以使用基本模型生成图像。不要选择任何预先存在的模板。
 
 ### 2.2 加载基础工作流程
 
-在 ComfyUI 左侧面板上找到工作流程部分（或按 `w`）。打开它后，您应该会发现已加载两个现有工作流程。对于基本 Flux 模型，我们加载 `base_flux.json` 工作流程。加载 json 后，您应该看到 ComfyUI 加载工作流程。
+在 Comfy UI 左侧面板上找到工作流程部分（或按 `w`）。打开它后，您应该会发现已加载两个现有工作流程。对于基本 Flux 模型，我们加载 `base_flux.json` 工作流程。加载 json 后，您应该看到 Comfy UI 加载工作流程。
 
 ### 2.3 填写您生成的提示
 
@@ -96,9 +96,9 @@ sh launch_comfyui.sh
 
 使用基本模型后，您有 2 个可能的后续步骤。
 * 如果您已经在 `models/loras/` 内放置了经过微调的 LoRA，请跳至 [Load the finetuned workflow](#52-load-the-finetuned-workflow) 部分。
-* 如果您希望针对您的自定义概念训练 LoRA，请首先确保 ComfyUI 推理容器已关闭，然后再继续训练。您可以通过使用 `Ctrl+C` 按键中断终端来调用它。
+* 如果您希望针对您的自定义概念训练 LoRA，请首先确保 Comfy UI 推理容器已关闭，然后再继续训练。您可以通过使用 `Ctrl+C` 按键中断终端来调用它。
 
-> **注意**：要清除系统中任何额外占用的内存，请在中断 ComfyUI 服务器后在容器外部执行以下命令。
+> **注意**：要清除系统中任何额外占用的内存，请在中断 Comfy UI 服务器后在容器外部执行以下命令。
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 ```
@@ -181,17 +181,17 @@ sh launch_train.sh
 
 ```bash
 # Build the inference docker image, if you haven't already
-docker build -f Dockerfile.inference -t flux-comfyui .
+docker build -f Dockerfile.inference -t flux-Comfy UI .
 
-# Launch the ComfyUI container (ensure you are inside flux-finetuning/assets)
+# Launch the Comfy UI container (ensure you are inside flux-finetuning/assets)
 # You can ignore any import errors for `torchaudio`
-sh launch_comfyui.sh
+sh launch_Comfy UI.sh
 ```
-访问 `http://localhost:8188` 处的 ComfyUI 以使用微调后的模型生成图像。不要选择任何预先存在的模板。
+访问 `http://localhost:8188` 处的 Comfy UI 以使用微调后的模型生成图像。不要选择任何预先存在的模板。
 
 ### 5.2 加载微调后的工作流程
 
-在 ComfyUI 左侧面板上找到工作流程部分（或按 `w`）。打开它后，您应该会发现已加载两个现有工作流程。对于微调后的 Flux 模型，我们加载 `finetuned_flux.json` 工作流程。加载 json 后，您应该看到 ComfyUI 加载工作流程。
+在 Comfy UI 左侧面板上找到工作流程部分（或按 `w`）。打开它后，您应该会发现已加载两个现有工作流程。对于微调后的 Flux 模型，我们加载 `finetuned_flux.json` 工作流程。加载 json 后，您应该看到 Comfy UI 加载工作流程。
 
 ### 5.3 填写您生成的提示
 
@@ -206,7 +206,7 @@ sh launch_comfyui.sh
 
 ### 5.4（可选）调整你的世代
 
-ComfyUI 公开了多个字段来调整和更改生成图像的外观和感觉。以下是工作流程中需要注意的一些参数。
+Comfy UI 公开了多个字段来调整和更改生成图像的外观和感觉。以下是工作流程中需要注意的一些参数。
 
 1. **LoRA 权重**：在 `Load LoRA` 插件中更改训练好的 LoRA 文件，甚至调整其强度
 2. **调整分辨率**：修改`Empty Latent Image`插件中的宽度和高度为其他分辨率
@@ -218,4 +218,4 @@ ComfyUI 公开了多个字段来调整和更改生成图像的外观和感觉。
 
 该项目使用以下开源存储库：
 - `kohya-ss` 的 [sd-scripts](https://github.com/kohya-ss/sd-scripts) 存储库用于 FLUX.1 微调。
-- `comfyanonymous` 的 [ComfyUI](https://github.com/comfyanonymous/ComfyUI.git) 存储库用于 FLUX.1 推理。
+- `comfyanonymous` 的 [Comfy UI](https://github.com/comfyanonymous/ComfyUI.git) 存储库用于 FLUX.1 推理。

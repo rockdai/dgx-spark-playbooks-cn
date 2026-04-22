@@ -18,17 +18,17 @@
 本 playbook 演示如何在 DGX Spark 上使用多概念 Dreambooth LoRA（Low-Rank Adaptation）对 FLUX.1-dev 12B 模型进行微调，以实现自定义图像生成。
 DGX Spark 拥有 128GB 统一内存和强大的 GPU 加速能力，非常适合在内存中同时加载多个模型进行训练，例如 Diffusion Transformer、CLIP Text Encoder、T5 Text Encoder 和 Autoencoder。
 
-多概念 Dreambooth LoRA 微调允许你为 FLUX.1 教会新的概念、角色和风格。训练得到的 LoRA 权重可以轻松集成到现有 ComfyUI 工作流中，非常适合做原型验证和实验。
+多概念 Dreambooth LoRA 微调允许你为 FLUX.1 教会新的概念、角色和风格。训练得到的 LoRA 权重可以轻松集成到现有 Comfy UI 工作流中，非常适合做原型验证和实验。
 此外，这个 playbook 还展示了 DGX Spark 不仅可以在内存中加载多个模型，还能够训练并生成 1024px 及以上的高分辨率图像。
 
 ## 你将完成的内容
 
-你将得到一个已完成微调的 FLUX.1 模型，能够生成包含自定义概念的图像，并可直接用于 ComfyUI 工作流。
+你将得到一个已完成微调的 FLUX.1 模型，能够生成包含自定义概念的图像，并可直接用于 Comfy UI 工作流。
 本环境包括：
 - 使用 Dreambooth LoRA 技术对 FLUX.1-dev 模型进行微调
 - 基于自定义概念（"tjtoy" 玩具和 "sparkgpu" GPU）进行训练
 - 进行 1K 高分辨率扩散训练与推理
-- 集成 ComfyUI 以支持直观的可视化工作流
+- 集成 Comfy UI 以支持直观的可视化工作流
 - 通过 Docker 容器化实现可复现环境
 
 ## 前置条件
@@ -99,24 +99,24 @@ sh download.sh
 
 ```bash
 ## Build the inference docker image
-docker build -f Dockerfile.inference -t flux-comfyui .
+docker build -f Dockerfile.inference -t flux-Comfy UI .
 
-## Launch the ComfyUI container (ensure you are inside flux-finetuning/assets)
+## Launch the Comfy UI container (ensure you are inside flux-finetuning/assets)
 ## You can ignore any import errors for `torchaudio`
-sh launch_comfyui.sh
+sh launch_Comfy UI.sh
 ```
-访问 `http://localhost:8188` 打开 ComfyUI，并使用基础模型生成图像。不要选择任何预置模板。
+访问 `http://localhost:8188` 打开 Comfy UI，并使用基础模型生成图像。不要选择任何预置模板。
 
-在 ComfyUI 左侧面板找到 workflow 区域（或按 `w`）。打开后，你应该会看到两个已预加载的工作流。对于基础 Flux 模型，请加载 `base_flux.json` 工作流。加载该 json 后，你应该能看到 ComfyUI 已载入对应工作流。
+在 Comfy UI 左侧面板找到 workflow 区域（或按 `w`）。打开后，你应该会看到两个已预加载的工作流。对于基础 Flux 模型，请加载 `base_flux.json` 工作流。加载该 json 后，你应该能看到 Comfy UI 已载入对应工作流。
 
 在 `CLIP Text Encode (Prompt)` 模块中输入提示词。例如，这里我们使用 `Toy Jensen holding a DGX Spark in a datacenter`。由于生成的是 1024px 高分辨率图像，计算量较大，预计生成约需 3 分钟。
 
 体验基础模型后，你有两个后续选择。
 * 如果你已经将微调后的 LoRA 放入 `models/loras/`，请直接跳到 `Step 7. Fine-tuned model inference`。
-* 如果你希望为自己的概念训练 LoRA，请先确保在继续训练前关闭 ComfyUI 推理容器。你可以按 `Ctrl+C` 中断终端来停止它。
+* 如果你希望为自己的概念训练 LoRA，请先确保在继续训练前关闭 Comfy UI 推理容器。你可以按 `Ctrl+C` 中断终端来停止它。
 
 > [！笔记]
->  若想清理系统中额外占用的内存，请在中断 ComfyUI 服务器后，在容器外执行以下命令。
+>  若想清理系统中额外占用的内存，请在中断 Comfy UI 服务器后，在容器外执行以下命令。
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 ```
@@ -160,17 +160,17 @@ sh launch_train.sh
 现在开始使用我们微调好的 LoRA 生成图像。
 
 ```bash
-## Launch the ComfyUI container (ensure you are inside flux-finetuning/assets)
+## Launch the Comfy UI container (ensure you are inside flux-finetuning/assets)
 ## You can ignore any import errors for `torchaudio`
-sh launch_comfyui.sh
+sh launch_Comfy UI.sh
 ```
-访问 `http://localhost:8188` 打开 ComfyUI，并使用微调后的模型生成图像。不要选择任何预置模板。
+访问 `http://localhost:8188` 打开 Comfy UI，并使用微调后的模型生成图像。不要选择任何预置模板。
 
-在 ComfyUI 左侧面板找到 workflow 区域（或按 `w`）。打开后，你应该会看到两个已预加载的工作流。对于微调后的 Flux 模型，请加载 `finetuned_flux.json` 工作流。加载该 json 后，你应该能看到 ComfyUI 已载入对应工作流。
+在 Comfy UI 左侧面板找到 workflow 区域（或按 `w`）。打开后，你应该会看到两个已预加载的工作流。对于微调后的 Flux 模型，请加载 `finetuned_flux.json` 工作流。加载该 json 后，你应该能看到 Comfy UI 已载入对应工作流。
 
 在 `CLIP Text Encode (Prompt)` 模块中输入提示词。现在，把自定义概念加入到微调模型的提示词中。例如，我们使用 `tjtoy toy holding sparkgpu gpu in a datacenter`。由于生成的是 1024px 高分辨率图像，计算量较大，预计生成约需 3 分钟。
 
-与基础模型不同，微调后的模型可以在一张图像中同时生成多个概念。此外，ComfyUI 还提供了多个可调字段，用于调整生成图像的风格和效果。
+与基础模型不同，微调后的模型可以在一张图像中同时生成多个概念。此外，Comfy UI 还提供了多个可调字段，用于调整生成图像的风格和效果。
 
 <a id="troubleshooting"></a>
 ## 故障排查

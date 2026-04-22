@@ -45,9 +45,9 @@ sidebar_label: nemoclaw
 
 ### 基本思路
 
-**NVIDIA NemoClaw** 是一个开源参考堆栈，可更安全地简化 OpenClaw 始终在线助手的运行。它安装 **NVIDIA OpenShell** 运行时（一种专为执行具有额外安全性的代理而设计的环境）以及 NVIDIA Nemotron 等开源模型。单个安装程序命令即可处理 Node.js、OpenShell 和 NemoClaw CLI，然后引导您通过板载向导使用 Ollama 和 Nemotron 3 Super 在 DGX Spark 上创建沙盒代理。
+**NVIDIA NemoClaw** 是一个开源参考堆栈，可更安全地简化 OpenClaw 始终在线助手的运行。它安装 **NVIDIA OpenShell** 运行时（一种专为执行具有额外安全性的智能体而设计的环境）以及 NVIDIA Nemotron 等开源模型。单个安装程序命令即可处理 Node.js、OpenShell 和 NemoClaw CLI，然后引导您通过板载向导使用 Ollama 和 Nemotron 3 Super 在 DGX Spark 上创建沙盒智能体。
 
-在本剧本结束时，您将在 OpenShell 沙箱内拥有一个可工作的 AI 代理，可通过 Web 仪表板和 Telegram 机器人进行访问，并将推理路由到 Spark 上的本地 Nemotron 3 Super 120B 模型 - 所有这些都无需将您的主机文件系统或网络暴露给代理。
+在本剧本结束时，您将在 OpenShell 沙箱内拥有一个可工作的 AI 智能体，可通过 Web 仪表板和 Telegram 机器人进行访问，并将推理路由到 Spark 上的本地 Nemotron 3 Super 120B 模型 - 所有这些都无需将您的主机文件系统或网络暴露给智能体。
 
 ### 你将完成什么
 
@@ -56,7 +56,7 @@ sidebar_label: nemoclaw
 - 使用单个命令安装 NemoClaw（处理 Node.js、OpenShell 和 CLI）
 - 运行板载向导来创建沙箱并配置本地推理
 - 通过 CLI、TUI 和 Web UI 与客服人员聊天
-- 设置一个 Telegram 机器人，将消息转发给您的沙盒代理
+- 设置一个 Telegram 机器人，将消息转发给您的沙盒智能体
 
 ### 通知和免责声明
 
@@ -72,12 +72,12 @@ sidebar_label: nemoclaw
 
 此体验“按原样”提供，仅用于演示目的——不做任何保证。这是一个演示，而不是生产就绪的解决方案。您将需要针对您的环境和用例实施适当的安全控制。
 
-#### 人工智能代理的主要风险
+#### 人工智能智能体的主要风险
 
-- **数据泄露**——代理访问的任何材料都可能被暴露、泄露或被盗。
-- **恶意代码执行** - 代理或其连接的工具可能会使您的系统遭受恶意代码或网络攻击。
-- **意外操作** - 代理可能会在未经明确批准的情况下修改或删除文件、发送消息或访问服务。
-- **及时注入和操纵** - 外部输入或连接的内容可能会以意想不到的方式劫持代理的行为。
+- **数据泄露**——智能体访问的任何材料都可能被暴露、泄露或被盗。
+- **恶意代码执行** - 智能体或其连接的工具可能会使您的系统遭受恶意代码或网络攻击。
+- **意外操作** - 智能体可能会在未经明确批准的情况下修改或删除文件、发送消息或访问服务。
+- **及时注入和操纵** - 外部输入或连接的内容可能会以意想不到的方式劫持智能体的行为。
 
 #### 参与者致谢
 
@@ -134,7 +134,7 @@ docker info --format '{{.ServerVersion}}'
 ### 时间和风险
 
 - **预计时间：** 20--30 分钟（Ollama 和模型已下载）。首次模型下载会增加约 15--30 分钟，具体取决于网络速度。
-- **风险级别：**中——您正在沙箱中运行人工智能代理；隔离可以降低风险，但不能消除风险。使用干净的环境，不要连接敏感数据或生产帐户。
+- **风险级别：**中——您正在沙箱中运行人工智能智能体；隔离可以降低风险，但不能消除风险。使用干净的环境，不要连接敏感数据或生产帐户。
 - **最后更新：** 2026 年 3 月 31 日
   * 首次出版
 
@@ -298,7 +298,7 @@ curl -sf https://inference.local/v1/models
 
 预期：JSON 列表 `nemotron-3-super:120b`。
 
-### 步骤 6. 与代理交谈 (CLI)
+### 步骤 6. 与智能体交谈 (CLI)
 
 仍在沙箱内，发送测试消息：
 
@@ -306,7 +306,7 @@ curl -sf https://inference.local/v1/models
 openclaw agent --agent main --local -m "hello" --session-id test
 ```
 
-代理将使用 Nemotron 3 Super 进行响应。对于本地运行的 120B 参数模型，首次响应可能需要 30--90 秒。
+智能体将使用 Nemotron 3 Super 进行响应。对于本地运行的 120B 参数模型，首次响应可能需要 30--90 秒。
 
 ### 步骤 7. 交互式 TUI
 
@@ -407,7 +407,7 @@ nemoclaw start
 nemoclaw status
 ```
 
-打开 Telegram，找到您的机器人，然后向其发送消息。机器人将其转发给代理并回复。
+打开 Telegram，找到您的机器人，然后向其发送消息。机器人将其转发给智能体并回复。
 
 > [！笔记]
 > 对于本地运行的 120B 参数模型，第一次响应可能需要 30--90 秒。
@@ -421,7 +421,7 @@ nemoclaw status
 > ````
 
 > [！笔记]
-> 有关限制哪些 Telegram 聊天可以与代理交互的详细信息，请参阅 [NemoClaw Telegram bridge documentation](https://docs.nvidia.com/nemoclaw/latest/deployment/set-up-telegram-bridge.html)。
+> 有关限制哪些 Telegram 聊天可以与智能体交互的详细信息，请参阅 [NemoClaw Telegram bridge documentation](https://docs.nvidia.com/nemoclaw/latest/deployment/set-up-telegram-bridge.html)。
 
 ---
 
@@ -506,7 +506,7 @@ cd ~/.nemoclaw/source
 | CoreDNS 崩溃循环 | 某些 DGX Spark 配置的已知问题 | 从 NemoClaw 存储库目录运行 `sudo ./scripts/fix-coredns.sh`。 |
 | 板载期间“未检测到 GPU” | DGX Spark GB10 以不同方式报告统一内存 | 预计在 DGX Spark 上。向导仍然工作并使用 Ollama 进行推理。 |
 | 推理超时或挂起 | Ollama 未运行或无法访问 | 检查奥拉玛：`curl http://localhost:11434`。如果未运行：`ollama serve &`。如果正在运行但无法从沙箱访问，请确保将 Ollama 配置为侦听 `0.0.0.0`（请参阅说明中的步骤 2）。 |
-| 代理没有响应或速度非常慢 | 120B型号本地运行正常 | Nemotron 3 Super 120B 每次响应可能需要 30--90 秒。验证推理路线：`nemoclaw my-assistant status`。 |
+| 智能体没有响应或速度非常慢 | 120B型号本地运行正常 | Nemotron 3 Super 120B 每次响应可能需要 30--90 秒。验证推理路线：`nemoclaw my-assistant status`。 |
 | 端口 18789 已被使用 | 另一个进程绑定到该端口 | `lsof -i :18789` 然后 `kill `PID`。如果需要，`kill -9 `PID` 强制终止。 |
 | Web UI 端口转发失败或仪表板无法访问 | 端口转发未激活 | `openshell forward stop 18789 my-assistant` 然后 `openshell forward start 18789 my-assistant --background`。 |
 | Web UI 显示 `origin not allowed` | 通过 `localhost` 而不是 `127.0.0.1` 访问 | 在浏览器中使用 `http://127.0.0.1:18789/#token=...`。网关来源检查完全需要 `127.0.0.1`。 |

@@ -1,6 +1,6 @@
 # 推测性解码
 
-> 了解如何设置推测解码以在 Spark 上进行快速推理
+> 了解如何设置投机采样以在 Spark 上进行快速推理
 
 ## 目录
 
@@ -31,7 +31,7 @@
 
 ## 你将完成什么
 
-您将使用两种方法在 NVIDIA Spark 上使用 TensorRT-LLM 探索推测解码：EAGLE-3 和 Draft-Target。
+您将使用两种方法在 NVIDIA Spark 上使用 TensorRT-LLM 探索投机采样：EAGLE-3 和 Draft-Target。
 这些示例演示了如何在保持输出质量的同时加速大型语言模型推理。
 
 ## 为什么是两个火花？
@@ -42,7 +42,7 @@
 
 **在两个 Sparks 上运行**选项卡将逐步完成此设置。两个 Spark 通过 QSFP 电缆连接，并使用 **张量并行性 (TP=2)** 来分割模型 - 每个 Spark 保存每层权重矩阵的一半，并计算每个前向传递的其部分。节点使用 NCCL 和 OpenMPI 通过高带宽链路传送中间结果，因此该模型作为跨两个设备的单个逻辑实例运行。
 
-简而言之：两个 Spark 可以让您运行对于一个来说太大的模型，而顶部的推测解码 (Eagle3) 通过并行起草和验证多个标记进一步加速推理。
+简而言之：两个 Spark 可以让您运行对于一个来说太大的模型，而顶部的投机采样 (Eagle3) 通过并行起草和验证多个标记进一步加速推理。
 
 ## 开始之前需要了解什么
 
@@ -70,7 +70,7 @@
 * **回滚：** 停止 Docker 容器并可选择清理下载的模型缓存。
 * **最后更新：** 2026 年 4 月 20 日
   * 升级到最新容器1.3.0rc12
-  * 添加在两个 Spark 上使用 Qwen3-235B-A22B 进行推测解码的示例
+  * 添加在两个 Spark 上使用 Qwen3-235B-A22B 进行投机采样的示例
 
 ## 指示
 
@@ -99,11 +99,11 @@ newgrp docker
 export HF_TOKEN=<your_huggingface_token>
  ```
 
-## 步骤 3. 运行推测解码方法
+## 步骤 3. 运行投机采样方法
 
 ### 选项 1：EAGLE-3
 
-通过执行以下命令来运行 EAGLE-3 推测解码：
+通过执行以下命令来运行 EAGLE-3 投机采样：
 
 ```bash
 docker run \
@@ -155,7 +155,7 @@ curl -X POST http://localhost:8000/v1/completions \
   }'
 ```
 
-**EAGLE-3 推测解码的主要特点**
+**EAGLE-3 投机采样的主要特点**
 
 - **更简单的部署** - EAGLE-3 没有管理单独的草稿模型，而是使用内置的草稿头在内部生成推测令牌。
 
@@ -165,7 +165,7 @@ curl -X POST http://localhost:8000/v1/completions \
 
 ### 选项 2：草案目标
 
-执行以下命令来设置并运行草稿目标推测解码：
+执行以下命令来设置并运行草稿目标投机采样：
 
 ```bash
 docker run \
@@ -239,7 +239,7 @@ docker stop <container_id>
 - 尝试不同的 `max_draft_len` 值（1、2、3、4、8）
 - 监控令牌接受率和吞吐量改进
 - 使用不同的提示长度和生成参数进行测试
-- 阅读有关推测解码 [here](https://nvidia.github.io/TensorRT-LLM/advanced/speculative-decoding.html) 的更多信息。
+- 阅读有关投机采样 [here](https://nvidia.github.io/TensorRT-LLM/advanced/speculative-decoding.html) 的更多信息。
 
 ## 靠两个火花奔跑
 
@@ -283,7 +283,7 @@ newgrp docker
 **在 Spark A 和 Spark B 上运行：**
 
 ```bash
-export TRTLLM_MN_CONTAINER=trtllm-multinode
+export TRT LLM_MN_CONTAINER=trtllm-multinode
 ```
 
 ### 步骤4.启动TRT-LLM多节点容器
@@ -292,7 +292,7 @@ export TRTLLM_MN_CONTAINER=trtllm-multinode
 
 ```bash
 docker run -d --rm \
-  --name $TRTLLM_MN_CONTAINER \
+  --name $TRT LLM_MN_CONTAINER \
   --gpus '"device=all"' \
   --network host \
   --ulimit memlock=-1 \
@@ -316,7 +316,7 @@ docker run -d --rm \
 核实：
 
 ```bash
-docker logs -f $TRTLLM_MN_CONTAINER
+docker logs -f $TRT LLM_MN_CONTAINER
 ```
 
 最后的预期输出：
@@ -354,26 +354,26 @@ EOF
 **在 Spark A 和 Spark B 上运行**以将主机文件复制到每个容器中：
 
 ```bash
-docker cp ~/openmpi-hostfile $TRTLLM_MN_CONTAINER:/etc/openmpi-hostfile
+docker cp ~/openmpi-hostfile $TRT LLM_MN_CONTAINER:/etc/openmpi-hostfile
 ```
 
 验证连接：
 
 ```bash
-docker exec -it $TRTLLM_MN_CONTAINER bash -c "mpirun -np 2 hostname"
+docker exec -it $TRT LLM_MN_CONTAINER bash -c "mpirun -np 2 hostname"
 ```
 
 预期输出：
 
 ```
-nvidia@spark-afe0:~$ docker exec -it $TRTLLM_MN_CONTAINER bash -c "mpirun -np 2 hostname"
+nvidia@spark-afe0:~$ docker exec -it $TRT LLM_MN_CONTAINER bash -c "mpirun -np 2 hostname"
 Warning: Permanently added '[192.168.200.13]:2233' (ED25519) to the list of known hosts.
 spark-afe0
 spark-ae11
 nvidia@spark-afe0:~$
 ```
 
-### 步骤 6. 启动 Eagle3 推测解码
+### 步骤 6. 启动 Eagle3 投机采样
 
 Eagle3 推测性解码通过提前预测多个标记，然后并行验证它们来加速推理。与标准自回归生成相比，这可以提供显着的加速。
 
@@ -388,17 +388,17 @@ export HF_TOKEN=your_huggingface_token_here
 ```bash
 docker exec \
   -e HF_TOKEN=$HF_TOKEN \
-  -it $TRTLLM_MN_CONTAINER bash -c "
+  -it $TRT LLM_MN_CONTAINER bash -c "
     mpirun -x HF_TOKEN -np 2 bash -c 'hf download nvidia/Qwen3-235B-A22B-Eagle3 --local-dir /opt/Qwen3-235B-A22B-Eagle3/'
 "
 ```
 
-#### 创建 Eagle3 推测解码配置
+#### 创建 Eagle3 投机采样配置
 
-此配置支持使用 3 个草案令牌和保守的内存设置进行 Eagle 推测解码。
+此配置支持使用 3 个草案令牌和保守的内存设置进行 Eagle 投机采样。
 
 ```bash
-docker exec -it $TRTLLM_MN_CONTAINER bash -c "cat > /tmp/extra-llm-api-config.yml <<EOF
+docker exec -it $TRT LLM_MN_CONTAINER bash -c "cat > /tmp/extra-llm-api-config.yml <<EOF
 enable_attention_dp: false
 disable_overlap_scheduler: false
 enable_autotuner: false
@@ -416,15 +416,15 @@ EOF
 "
 ```
 
-#### 使用 Eagle3 推测解码启动服务器
+#### 使用 Eagle3 投机采样启动服务器
 
-**仅在 Spark A 上运行。** 这将使用启用了 Eagle3 推测解码的 FP4 基本模型启动 TensorRT-LLM API 服务器。 `mpirun` 命令协调两个节点之间的执行，因此只需要从 Spark A 启动。最大令牌长度设置为 1024（根据需要调整）。
+**仅在 Spark A 上运行。** 这将使用启用了 Eagle3 投机采样的 FP4 基本模型启动 TensorRT-LLM API 服务器。 `mpirun` 命令协调两个节点之间的执行，因此只需要从 Spark A 启动。最大令牌长度设置为 1024（根据需要调整）。
 
 ```bash
 docker exec \
   -e MODEL="nvidia/Qwen3-235B-A22B-FP4" \
   -e HF_TOKEN=$HF_TOKEN \
-  -it $TRTLLM_MN_CONTAINER bash -c '
+  -it $TRT LLM_MN_CONTAINER bash -c '
     mpirun -x CPATH=/usr/local/cuda/include \
            -x TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas \
            -x HF_TOKEN \
@@ -462,7 +462,7 @@ curl -s http://localhost:8355/v1/chat/completions \
   }'
 ```
 
-预期：带有生成文本的 JSON 响应。这证实了具有 Eagle3 推测解码功能的多节点 TensorRT-LLM 服务器正常工作。
+预期：带有生成文本的 JSON 响应。这证实了具有 Eagle3 投机采样功能的多节点 TensorRT-LLM 服务器正常工作。
 
 ### 步骤 8. 清理
 
@@ -471,7 +471,7 @@ curl -s http://localhost:8355/v1/chat/completions \
 **在 Spark A 和 B 上运行：**
 
 ```bash
-docker stop $TRTLLM_MN_CONTAINER
+docker stop $TRT LLM_MN_CONTAINER
 ```
 
 由于 `--rm` 标志，容器将被自动删除。
@@ -490,13 +490,13 @@ rm -rf $HOME/.cache/huggingface/hub/models--nvidia--Qwen3*
 
 ### 步骤 9. 后续步骤
 
-现在您已经运行了 Eagle3 推测解码，请考虑以下优化和实验：
+现在您已经运行了 Eagle3 投机采样，请考虑以下优化和实验：
 
 - **调整草稿长度：** 修改配置中的 `max_draft_len` （尝试 2-5 之间的值）以平衡推测速度与准确性
-- **尝试不同的模型：** 尝试支持 Eagle 推测解码的其他模型对
+- **尝试不同的模型：** 尝试支持 Eagle 投机采样的其他模型对
 - **优化批量大小：** 调整 `cuda_graph_config` 中的 `max_batch_size` 以实现吞吐量-延迟权衡
 - **了解更多：** 查看 [TensorRT-LLM Speculative Decoding documentation](https://nvidia.github.io/TensorRT-LLM/advanced/speculative-decoding.html) 以获取高级调整选项
-- **基准性能：** 比较有和没有推测解码的推理速度，以测量加速增益
+- **基准性能：** 比较有和没有投机采样的推理速度，以测量加速增益
 
 ## 故障排除
 

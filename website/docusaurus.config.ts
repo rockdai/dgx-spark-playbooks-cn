@@ -43,6 +43,8 @@ const config: Config = {
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {
       respectPrefersColorScheme: true,
+      disableSwitch: true,
+      defaultMode: 'dark',
     },
     navbar: {
       title: 'DGX Spark 中文手册',

@@ -1,21 +1,24 @@
 import { SiteShell } from "@/components/SiteShell";
 import styles from "./page.module.css";
 
-const featuredPlaybooks = [
+const connectionCards = [
   {
     title: "连接你的 DGX Spark",
-    description: "快速完成本地网络接入、远程访问与基础连接配置。",
+    description: "配置本地网络访问、SSH 与远程开发入口，作为第一步开始使用。",
     href: "/playbooks/connect-to-your-spark",
+    badge: "开始使用",
   },
   {
-    title: "Open WebUI",
-    description: "围绕 Ollama 与 Open WebUI 构建可直接使用的本地 AI 交互体验。",
+    title: "结合 Ollama 使用 Open WebUI",
+    description: "快速搭建一个本地可交互的 AI Web 界面，适合演示、试用与日常对话。",
     href: "/playbooks/open-webui",
+    badge: "热门入口",
   },
   {
-    title: "vLLM",
-    description: "面向高性能推理场景的部署与使用指南，保留原始模型名称与技术术语。",
+    title: "使用 vLLM 进行推理",
+    description: "面向更高吞吐与更稳定推理流程的部署路径，适合生产化实验。",
     href: "/playbooks/vllm",
+    badge: "推理实践",
   },
 ];
 
@@ -23,34 +26,39 @@ export default function Home() {
   return (
     <SiteShell>
       <section className={styles.hero}>
-        <div className={styles.heroGlow} />
-        <p className={styles.eyebrow}>DGX Spark 中文社区</p>
-        <h1 className={styles.title}>DGX Spark 中文社区</h1>
-        <p className={styles.subtitle}>
-          不再依赖通用文档站壳子，而是把 DGX Spark 的中文内容、购买入口与高频实践路径整合成一套更像产品站的前端层。
-        </p>
-        <div className={styles.actions}>
-          <a className={styles.primaryAction} href="/intro">
-            开始阅读
-          </a>
-          <a className={styles.secondaryAction} href="#featured-playbooks">
-            浏览核心 Playbooks
-          </a>
+        <div className={styles.heroInner}>
+          <p className={styles.eyebrow}>DGX Spark</p>
+          <h1 className={styles.title}>DGX Spark 中文社区</h1>
+          <p className={styles.subtitle}>选择你希望进入 DGX Spark 的方式。我们把中文文档、购买入口和高频 playbooks 整理成一套更接近 NVIDIA 官网体验的社区版本。</p>
+          <div className={styles.actions}>
+            <a className={styles.primaryAction} href="/intro">
+              开始使用
+            </a>
+            <a className={styles.secondaryAction} href="https://common-buy.aliyun.com/?commodityCode=datav_spark_public_cn" target="_blank" rel="noreferrer">
+              立即购买
+            </a>
+          </div>
         </div>
       </section>
 
-      <section id="featured-playbooks" className={styles.section}>
+      <section className={styles.cardsSection}>
         <div className={styles.sectionHeader}>
-          <p className={styles.sectionEyebrow}>精选入口</p>
-          <h2>从最常用的场景开始</h2>
+          <p className={styles.sectionEyebrow}>Core Playbooks</p>
+          <h2>从这里进入最常用的 DGX Spark 场景</h2>
         </div>
         <div className={styles.cardGrid}>
-          {featuredPlaybooks.map((item) => (
+          {connectionCards.map((item) => (
             <a key={item.href} className={styles.card} href={item.href}>
-              <span className={styles.cardLabel}>Playbook</span>
-              <h3>{item.title}</h3>
-              <p>{item.description}</p>
-              <span className={styles.cardCta}>查看详情</span>
+              <div className={styles.cardTop}>
+                <span className={styles.badge}>{item.badge}</span>
+              </div>
+              <div className={styles.cardBody}>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </div>
+              <div className={styles.cardFooter}>
+                <span className={styles.cardCta}>进入 Playbook</span>
+              </div>
             </a>
           ))}
         </div>

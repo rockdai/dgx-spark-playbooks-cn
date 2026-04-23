@@ -1,8 +1,8 @@
 .page {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top center, rgba(118, 255, 61, 0.16), transparent 28%),
-    linear-gradient(180deg, #050806 0%, #0b0f0c 42%, #060807 100%);
+    radial-gradient(circle at top center, rgba(118, 255, 61, 0.08), transparent 24%),
+    linear-gradient(180deg, #060907 0%, #090d0a 38%, #060907 100%);
   color: #f3f5f7;
 }
 
@@ -18,9 +18,8 @@
 .headerGlass {
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1.1rem;
-  background: #0c100d;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  border-radius: 0.9rem;
+  background: #0b0e0c;
 }
 
 .header {
@@ -28,14 +27,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  min-height: 4.5rem;
-  padding: 0 1.15rem;
+  min-height: 4rem;
+  padding: 0 1rem;
 }
 
 .brand {
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   color: #f7faf7;
 }
 
@@ -46,19 +45,21 @@
 }
 
 .navLink {
-  color: rgba(247, 250, 247, 0.78);
+  color: rgba(247, 250, 247, 0.76);
+  font-size: 0.95rem;
 }
 
 .buyButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.65rem;
-  padding: 0 1.1rem;
+  min-height: 2.35rem;
+  padding: 0 0.95rem;
   border-radius: 999px;
-  background: #76ff3d;
+  background: #76b900;
   color: #081006;
   font-weight: 700;
+  font-size: 0.94rem;
 }
 
 .main {

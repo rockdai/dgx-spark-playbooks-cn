@@ -8,28 +8,31 @@
   margin-top: 1.15rem;
 }
 
-.markdown h1,
-.markdown h2,
-.markdown h3,
+.h1,
+.h2,
+.h3,
 .markdown h4 {
   color: #f3f5f7;
   line-height: 1.2;
   scroll-margin-top: 7rem;
 }
 
-.markdown h1 {
+.h1 {
   margin-top: 0;
   font-size: clamp(2.2rem, 5vw, 3.6rem);
 }
 
-.markdown h2 {
-  margin-top: 3rem;
+.h2 {
+  margin-top: 3.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-size: clamp(1.5rem, 3vw, 2.1rem);
 }
 
-.markdown h3 {
+.h3 {
   margin-top: 2rem;
   font-size: 1.25rem;
+  color: #d7f7cd;
 }
 
 .markdown p,
@@ -57,11 +60,26 @@
   color: #f9fafb;
 }
 
-.markdown blockquote {
+.callout {
   padding: 1rem 1.1rem;
   border-left: 3px solid rgba(118, 255, 61, 0.72);
   border-radius: 0 1rem 1rem 0;
   background: rgba(118, 255, 61, 0.06);
+}
+
+.calloutImportant {
+  border-left-color: #4dd8ff;
+  background: rgba(77, 216, 255, 0.08);
+}
+
+.calloutWarning {
+  border-left-color: #ffb347;
+  background: rgba(255, 179, 71, 0.09);
+}
+
+.calloutTip {
+  border-left-color: #b391ff;
+  background: rgba(179, 145, 255, 0.09);
 }
 
 .markdown hr {

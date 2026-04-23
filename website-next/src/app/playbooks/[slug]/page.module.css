@@ -1,5 +1,14 @@
 .hero {
-  padding: 4rem 0 2rem;
+  padding: 3.5rem 0 2rem;
+}
+
+.heroPanel {
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.75rem;
+  background:
+    radial-gradient(circle at top left, rgba(118, 255, 61, 0.12), transparent 35%),
+    linear-gradient(180deg, rgba(15, 19, 16, 0.96) 0%, rgba(9, 11, 10, 0.98) 100%);
 }
 
 .eyebrow {
@@ -16,19 +25,83 @@
   line-height: 1.02;
 }
 
-.meta {
+.description {
+  max-width: 54rem;
   margin-top: 1rem;
-  color: rgba(243, 245, 247, 0.55);
+  color: rgba(243, 245, 247, 0.74);
+  line-height: 1.85;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.metaRow span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.1rem;
+  padding: 0 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  color: rgba(243, 245, 247, 0.7);
   font-size: 0.92rem;
 }
 
-.contentShell {
+.layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 1.5rem;
   padding-bottom: 2rem;
 }
 
+.sidebarCard {
+  position: sticky;
+  top: 6rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  background: rgba(11, 15, 12, 0.88);
+}
+
+.sidebarTitle {
+  margin-bottom: 1rem;
+  color: #f9fafb;
+  font-weight: 700;
+}
+
+.toc {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.toc a {
+  color: rgba(243, 245, 247, 0.72);
+  line-height: 1.5;
+}
+
+.tocChild {
+  padding-left: 0.9rem;
+  color: rgba(243, 245, 247, 0.55) !important;
+  font-size: 0.95rem;
+}
+
 .article {
-  padding: 1.5rem 1.75rem;
+  padding: 1.75rem 1.85rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 1.5rem;
   background: rgba(11, 15, 12, 0.82);
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebarCard {
+    position: static;
+  }
 }

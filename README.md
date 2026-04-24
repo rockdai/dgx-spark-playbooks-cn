@@ -2,7 +2,7 @@
   <img src="src/images/dgx-spark-banner.png" alt="NVIDIA DGX Spark"/>
 </p>
 
-# DGX Spark 手册中文版
+# DGX Spark 中文手册
 
 这是一个面向中文读者整理的 **DGX Spark Playbooks 中文翻译项目**，旨在帮助开发者、研究者、工程团队与 AI 爱好者更高效地理解和使用基于 NVIDIA Blackwell 架构的 DGX Spark。
 

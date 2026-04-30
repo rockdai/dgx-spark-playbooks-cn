@@ -24,7 +24,7 @@ Next.js React 应用程序为聊天机器人演示提供用户界面。
 
 使用 Next.js 14、TypeScript 和 CSS 模块构建。通过 REST API 和 WebSocket 连接与后端进行通信，以实现实时聊天流。
 
-## Docker 故障排除
+## Docker 故障排查
 
 ### 容器问题
 - **端口冲突**：确保端口 3000 未被其他应用程序使用

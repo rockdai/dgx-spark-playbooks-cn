@@ -4,12 +4,13 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
@@ -56,8 +57,8 @@
   * 更新所需的操作系统和驱动程序版本
   * 通过 Cosmos Reason 2 VLM 支持 VSS 3.1.0
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤 1. 验证环境要求
 
 检查您的系统是否满足硬件和软件 [prerequisites](https://docs.nvidia.com/vss/latest/prerequisites.html) 的要求。
@@ -102,9 +103,9 @@ sudo systemctl restart docker
 sudo docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
 ```
 
-## 步骤 3. 克隆 VSS 存储库
+## 步骤 3. 克隆 VSS 仓库
 
-从 NVIDIA 的公共 GitHub 克隆视频搜索和摘要存储库。
+从 NVIDIA 的公共 GitHub 克隆视频搜索和摘要仓库。
 
 ```bash
 ## Clone the VSS AI Blueprint repository
@@ -149,7 +150,7 @@ sudo -b /usr/local/bin/sys-cache-cleaner.sh
 
 > [!NOTE]
 +> 以上仅在当前会话中运行缓存清理器；它不会在重新启动后持续存在。要让缓存清理器在重新启动后运行，请创建一个 systemd 服务。
-+> 
++>
 +> 要停止后台缓存清理器：
 +> ```bash
 +> sudo pkill -f sys-cache-cleaner.sh
@@ -161,7 +162,7 @@ sudo -b /usr/local/bin/sys-cache-cleaner.sh
 使用 [NGC API Key](https://org.ngc.nvidia.com/setup/api-keys) 登录 NVIDIA 的容器注册表。
 
 > [!NOTE]
-> 如果您还没有 NVIDIA 帐户，则必须创建一个帐户并注册 [developer program](https://developer.nvidia.com/nvidia-developer-program)。
+> 如果您还没有 NVIDIA 账户，则必须创建一个账户并注册 [developer program](https://developer.nvidia.com/nvidia-developer-program)。
 
 ```bash
 ## Log in to NVIDIA Container Registry
@@ -174,18 +175,18 @@ docker login nvcr.io
 
 根据您的要求在两个部署选项之间进行选择：
 
-| 部署场景                       | VLM（Cosmos-Reason2-8B）| 法学硕士                           | 
+| 部署场景                       | VLM（Cosmos-Reason2-8B）| LLM                           |
 |-------------------------------------------|------------------------|-------------------------------|
 | 标准 VSS（基础）                       | 当地的           | 偏僻的                               |
 | 标准 VSS（警报验证）         | 当地的           | 偏僻的                               |
 | 标准VSS部署（实时警报）| 当地的           | 偏僻的                               |
 
 
-## 步骤 7. 标准 VSS 
+## 步骤 7. 标准 VSS
 
 **[Standard VSS](https://docs.nvidia.com/vss/latest/#architecture-overview)（混合部署）**
 
-在此混合部署中，我们将使用 [build.nvidia.com](https://build.nvidia.com/) 中的 NIM。或者，您可以按照 [VSS remote LLM deployment guide](https://docs.nvidia.com/vss/latest/vss-agent/configure-llm.html) 中的说明配置您自己的托管端点。
+在此混合部署中，我们将使用 [build.nvidia.com](https://build.nvidia.com/) 中的 NIM。或者，您可以按照 [VSS 远程 LLM 部署指南](https://docs.nvidia.com/vss/latest/vss-agent/configure-llm.html) 中的说明配置您自己的托管端点。
 
 
 **7.1 获取 NVIDIA API 密钥**
@@ -239,7 +240,7 @@ scripts/dev-profile.sh up -p alerts -m real-time -H DGX-SPARK --use-remote-llm -
 [Common VSS Endpoints](https://docs.nvidia.com/vss/latest/agent-workflow-alert-verification.html#service-endpoints)
 
 ```bash
-## Test Agent UI accessibility
+## 测试智能体 UI 可访问性
 ## If running locally on your Spark device, use localhost:
 curl -I http://localhost:3000
 ## Expected: HTTP 200 response
@@ -261,14 +262,14 @@ curl -I http://<SPARK_IP_OR_HOSTNAME>:3000
 
 **对于标准 VSS 部署**
 
-按照步骤 [here](https://docs.nvidia.com/vss/latest/quickstart.html#deploy) 导航 VSS 智能体 UI。
+按照步骤 [这里](https://docs.nvidia.com/vss/latest/quickstart.html#deploy) 导航 VSS 智能体 UI。
 - 访问 `http://localhost:3000` 处的 VSS 智能体界面
-- 从 NGC [here](https://docs.nvidia.com/vss/latest/quickstart.html#download-sample-data-from-ngc) 下载样本数据并上传视频和测试功能 [here](https://docs.nvidia.com/vss/latest/quickstart.html#download-sample-data-from-ngc)
-  
+- 从 NGC [这里](https://docs.nvidia.com/vss/latest/quickstart.html#download-sample-data-from-ngc) 下载样本数据并上传视频和测试功能 [这里](https://docs.nvidia.com/vss/latest/quickstart.html#download-sample-data-from-ngc)
+
 
 ## 步骤 9. 清理和回滚
 
-要完全删除 VSS 部署并释放系统资源 [Follow](https://docs.nvidia.com/vss/latest/quickstart.html#step-5-teardown-the-agent)：
+要完全删除 VSS 部署并释放系统资源 [按说明操作](https://docs.nvidia.com/vss/latest/quickstart.html#step-5-teardown-the-agent)：
 
 > [!WARNING]
 > 这将破坏所有处理过的视频数据和分析结果。
@@ -288,16 +289,16 @@ scripts/dev-profile.sh down
 - 配置知识图和图数据库
 - 与现有视频处理工作流程集成
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|--------|-----|
 | 容器无法启动，并显示“拉取访问被拒绝” | nvcr.io 凭据缺失或不正确 | 使用有效凭据重新运行 `docker login nvcr.io` |
 | Web 界面无法访问 | 服务仍在启动或端口冲突 | 等待 2-3 分钟，检查 `docker ps` 容器状态 |
 
 > [!NOTE]
-> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。 
-> 由于许多应用程序仍在更新以利用 UMA，因此即使在 
+> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。
+> 由于许多应用程序仍在更新以利用 UMA，因此即使在
 > DGX Spark 的内存容量。如果发生这种情况，请使用以下命令手动刷新缓冲区缓存：
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'

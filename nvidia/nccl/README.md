@@ -1,15 +1,16 @@
-# NCCL 两火花
+# NCCL 两台 Spark
 
 > 在两个 Spark 上安装并测试 NCCL
 
 ## 目录
 
-- [Overview](#overview)
-- [Run on two Sparks](#run-on-two-sparks)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [在两台 Spark 上运行](#run-on-two-sparks)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
@@ -41,13 +42,14 @@ Blackwell 支持源，并验证节点之间的通信。
 
 ## 时间与风险
 
-* **持续时间**：30 分钟用于设置和验证
+* **预计时间**：30 分钟用于设置和验证
 * **风险级别**：中 - 涉及网络配置更改
-* **回滚**：可以从 DGX Spark 中删除 NCCL 和 NCCL 测试存储库
+* **回滚**：可以从 DGX Spark 中删除 NCCL 和 NCCL 测试仓库
 * **最后更新：** 2025 年 12 月 15 日
   * 使用nccl最新版本v2.28.9-1
 
-## 在两个 Spark 上运行
+<a id="run-on-two-sparks"></a>
+## 在两台 Spark 上运行
 
 ## 步骤 1. 配置网络连接
 
@@ -130,7 +132,7 @@ nvidia@dgx-spark-1:~$ ip addr show enp1s0f1np1
 
 ## 步骤 5. 运行 NCCL 通信测试
 
-> [！笔记] 
+> [！笔记]
 > 只需一根 QSFP 电缆即可实现全带宽。
 > 当连接两根 QSFP 电缆时，必须为所有四个接口分配 IP 地址以获得完整带宽。
 
@@ -178,9 +180,9 @@ rm -rf ~/nccl-tests/
 您的 NCCL 环境已准备好在 DGX Spark 上进行多节点分布式训练工作负载。
 现在您可以尝试运行更大的分布式工作负载，例如 TRT-LLM 或 vLLM 推理。
 
-## 故障排除
-
-## 在两个 Spark 上运行的常见问题
+<a id="troubleshooting"></a>
+## 故障排查
+## 在两台 Spark 上运行的常见问题
 
 | 问题 | 原因 | 解决方案 |
 |-------|-------|----------|

@@ -4,17 +4,18 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
 
-本手册将Instruct您设置和使用 NVIDIA NeMo AutoModel 在 NVIDIA Spark 设备上微调大型语言模型和视觉语言模型。 NeMo AutoModel 通过原生 PyTorch 支持为 Hugging Face 模型提供 GPU 加速的端到端训练，从而实现即时微调，无需转换延迟。该框架支持跨单 GPU 到多节点集群的分布式训练，具有专​​为 ARM64 架构和 Blackwell GPU 系统设计的优化内核和内存高效配方。
+本手册将引导您设置和使用 NVIDIA NeMo AutoModel 在 NVIDIA Spark 设备上微调大型语言模型和视觉语言模型。 NeMo AutoModel 通过原生 PyTorch 支持为 Hugging Face 模型提供 GPU 加速的端到端训练，从而实现即时微调，无需转换延迟。该框架支持跨单 GPU 到多节点集群的分布式训练，具有专​​为 ARM64 架构和 Blackwell GPU 系统设计的优化内核和内存高效配方。
 
 ## 你将完成什么
 
@@ -35,23 +36,23 @@
 - Python 3.10+ 可用环境：`python3 --version`
 - 最低 32GB 系统 RAM，可实现高效的模型加载和训练
 - 用于下载模型和包的有效互联网连接
-- 安装 Git 用于存储库克隆：`git --version`
+- 安装 Git 用于仓库克隆：`git --version`
 - 已配置对 NVIDIA Spark 设备的 SSH 访问
 
 ## 附属文件
 
-该剧本的所有必需文件都可以在 [here on GitHub](https://github.com/NVIDIA-NeMo/Automodel) 中找到
+该剧本的所有必需文件都可以在 [GitHub](https://github.com/NVIDIA-NeMo/Automodel) 中找到
 
 ## 时间与风险
 
 * **持续时间：** 完成设置和初始模型微调需要 45-90 分钟
-* **风险：** 模型下载可能很大（几个 GB），ARM64 包兼容性问题可能需要进行故障排除，分布式训练设置复杂性随着多节点配置而增加
+* **风险：** 模型下载可能很大（几个 GB），ARM64 包兼容性问题可能需要进行故障排查，分布式训练设置复杂性随着多节点配置而增加
 * **回滚：**可以彻底删除虚拟环境；除了软件包安装之外，不会对主机系统进行任何系统级更改。
 * **最后更新：** 2026 年 3 月 4 日
   * 建议通过 Docker 运行 Nemo Finetune 工作流程
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤 1. 验证系统要求
 
 检查您的 NVIDIA Spark 设备是否满足 [NeMo AutoModel](https://github.com/NVIDIA-NeMo/Automodel) 安装的先决条件。此步骤在主机系统上运行，以确认 CUDA 工具包的可用性和 Python 版本兼容性。
@@ -140,7 +141,7 @@ export HF_TOKEN=<your_huggingface_token>
 > [！笔记]
 > 将 `<your_huggingface_token>` 替换为您的个人 Hugging Face 访问令牌。下载任何门控模型都需要有效的令牌。
 >
-> - 生成令牌：[Hugging Face tokens](https://huggingface.co/settings/tokens)，引导可用[here](https://huggingface.co/docs/hub/en/security-tokens)。
+> - 生成令牌：[Hugging Face tokens](https://huggingface.co/settings/tokens)，引导可用[这里](https://huggingface.co/docs/hub/en/security-tokens)。
 > - 在尝试下载之前，请求并接收每个模型页面的访问权限（并接受许可/条款）。
 >   - 骆驼-3.1-8B：[meta-llama/Llama-3.1-8B](https://huggingface.co/meta-llama/Llama-3.1-8B)
 >   - Qwen3-8B：[Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)
@@ -214,7 +215,7 @@ python3 examples/llm_finetune/finetune.py \
 - `--packed_sequence.packed_sequence_size`：将打包序列大小设置为 1024 以启用打包序列训练。
 
 
-## 步骤 7. 验证培训是否成功完成
+## 步骤 7. 验证训练是否成功完成
 
 通过检查检查点目录中包含的工件来验证微调后的模型。
 
@@ -242,7 +243,7 @@ ls -lah checkpoints/LATEST/
 该容器是使用 `--rm` 标志启动的，因此当您退出时它会自动删除。要回收 Docker 映像使用的磁盘空间，请运行：
 
 > [！警告]
-> 这将删除 NeMo AutoModel 图像。如果稍后想使用它，则需要再次拉动它。
+> 这将删除 NeMo AutoModel 图像。如果稍后想使用它，则需要再次拉取它。
 
 ```bash
 docker rmi nvcr.io/nvidia/nemo-automodel:26.02
@@ -253,14 +254,14 @@ docker rmi nvcr.io/nvidia/nemo-automodel:26.02
 > [！笔记]
 > 这是一个可选步骤，对于使用微调模型来说不是必需的。
 > 如果您想与其他人共享微调后的模型或在其他项目中使用它，它会很有用。
-> 您还可以通过克隆存储库并使用检查点在其他项目中使用微调后的模型。
+> 您还可以通过克隆仓库并使用检查点在其他项目中使用微调后的模型。
 > 要在其他项目中使用微调后的模型，您需要安装 Hugging Face CLI。
 > 您可以通过运行 `pip install huggingface_hub` 安装 Hugging Face CLI。
-> 欲了解更多信息，请参阅[Hugging Face CLI documentation](https://huggingface.co/docs/huggingface_hub/en/guides/cli)。
+> 欲了解更多信息，请参阅[Hugging Face CLI 文档](https://huggingface.co/docs/huggingface_hub/en/guides/cli)。
 
 > [！提示]
 > 您可以使用 `hf` 命令将微调后的模型检查点上传到 Hugging Face Hub。
-> 欲了解更多信息，请参阅[Hugging Face CLI documentation](https://huggingface.co/docs/huggingface_hub/en/guides/cli)。
+> 欲了解更多信息，请参阅[Hugging Face CLI 文档](https://huggingface.co/docs/huggingface_hub/en/guides/cli)。
 
 ```bash
 ## Publish the fine-tuned model checkpoint to Hugging Face Hub
@@ -271,7 +272,7 @@ hf upload my-cool-model checkpoints/LATEST/model
 > [！提示]
 > 如果您没有 Hugging Face Hub 以及您使用的 HF_TOKEN 的写入权限，则上述命令可能会失败。
 > 错误消息示例：
-> ````重击
+> ````bash
 > user@host:/opt/Automodel$ hf 上传 my-cool-model 检查点/LATEST/model
 > 回溯（最近一次调用最后一次）：
 >   文件“/home/user/.local/lib/python3.10/site-packages/huggingface_hub/utils/_http.py”，第 409 行，hf_raise_for_status
@@ -280,7 +281,7 @@ hf upload my-cool-model checkpoints/LATEST/model
 >     引发 HTTPError(http_error_msg, response=self)
 > requests.exceptions.HTTPError：403 客户端错误：禁止 url：https://huggingface.co/api/repos/create
 > ````
-> 要解决此问题，您需要创建具有*写入*权限的访问令牌，请参阅 Hugging Face 指南 [here](https://huggingface.co/docs/hub/en/security-tokens) 了解说明。
+> 要解决此问题，您需要创建具有*写入*权限的访问令牌，请参阅 Hugging Face 指南 [这里](https://huggingface.co/docs/hub/en/security-tokens) 了解说明。
 
 ## 步骤 10. 后续步骤
 
@@ -294,10 +295,10 @@ cp examples/llm_finetune/finetune.py my_custom_training.py
 python3 my_custom_training.py
 ```
 
-探索 [NeMo AutoModel GitHub repository](https://github.com/NVIDIA-NeMo/Automodel) 以获取更多食谱、文档和社区示例。考虑设置自定义数据集，尝试不同的模型架构，并扩展到更大模型的多节点分布式训练。
+探索 [NeMo AutoModel GitHub 仓库](https://github.com/NVIDIA-NeMo/Automodel) 以获取更多食谱、文档和社区示例。考虑设置自定义数据集，尝试不同的模型架构，并扩展到更大模型的多节点分布式训练。
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|--------|-----|
 | `nvcc: command not found` | CUDA 工具包不在 PATH 中 | 将 CUDA 工具包添加到路径：`export PATH=/usr/local/cuda/bin:$PATH` |
@@ -305,7 +306,7 @@ python3 my_custom_training.py
 | 训练中未检测到 GPU | CUDA 驱动程序/运行时不匹配 | 验证驱动程序兼容性：`nvidia-smi` 并根据需要重新安装 CUDA |
 | 训练期间内存不足 | 模型对于可用 GPU 内存来说太大 | 减少批量大小、启用梯度检查点或使用模型并行性 |
 | ARM64 封装兼容性问题 | 软件包不适用于 ARM 架构 | 使用源安装或使用 ARM64 标志从源构建 |
-| 无法访问 URL 的门禁存储库 | 某些 HuggingFace 模型的访问受到限制 | 重新生成你的 [HuggingFace token](https://huggingface.co/docs/hub/en/security-tokens);并请求在您的网络浏览器上访问 [gated model](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
+| 无法访问 URL 的门禁仓库 | 某些 Hugging Face 模型的访问受到限制 | 重新生成你的 [Hugging Face token](https://huggingface.co/docs/hub/en/security-tokens);并请求在您的网络浏览器上访问 [gated model](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
 
 > [！笔记]
 > DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。

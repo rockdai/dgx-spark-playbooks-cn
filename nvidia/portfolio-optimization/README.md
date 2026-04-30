@@ -4,24 +4,25 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
 
-本手册演示了使用 NVIDIA cuOpt 和 NVIDIA cuML 的端到端 GPU 加速工作流程，使用 Mean-CVaR（条件风险价值）模型近乎实时地解决大规模投资组合优化问题。 
+本手册演示了使用 NVIDIA cuOpt 和 NVIDIA cuML 的端到端 GPU 加速工作流程，使用 Mean-CVaR（条件风险价值）模型近乎实时地解决大规模投资组合优化问题。
 
 投资组合优化 (PO) 涉及解决高维、非线性数值优化问题以平衡风险和回报。现代投资组合通常包含数千个资产，使得传统的基于 CPU 的求解器对于高级工作流程而言速度太慢。通过将繁重的计算工作转移到 GPU，该解决方案极大地减少了计算时间。
 
 ## 你将完成什么
 
 您将实现一个提供绩效评估、策略回测、基准测试和可视化工具的管道。工作流程包括：
-- **GPU 加速优化：** 利用 NVIDIA cuOpt LP/MILP 求解器 
+- **GPU 加速优化：** 利用 NVIDIA cuOpt LP/MILP 求解器
 - **数据驱动的风险建模：** 将 CVaR 实施为基于场景的风险度量，对尾部风险进行建模，而不对资产回报分布做出假设。
 - **场景生成：** 通过 NVIDIA cuML 使用 GPU 加速的内核密度估计 (KDE) 对回报分布进行建模。
 - **现实世界的约束管理：** 实施约束，包括集中度限制、杠杆约束、营业额限制和基数约束。
@@ -40,7 +41,7 @@
 
 - **可选技能（你会喜欢的）：**
   - 金融服务背景，特别是量化金融和投资组合管理
-  - 适度的知识编程算法和策略，在Python中，使用机器学习概念 
+  - 适度的知识编程算法和策略，在Python中，使用机器学习概念
 
 - **须知条款：**
   - **CVaR 与均值方差：** 与传统的均值方差模型不同，此工作流程使用条件风险值 (CVaR) 来捕获风险的细微差别，特别是尾部风险或特定于场景的压力。
@@ -62,13 +63,13 @@
 
 ## 附属文件
 
-所有必需的资产都可以在 [in the Portfolio Optimization repository](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/portfolio-optimization/assets/) 中找到。  在运行的剧本中，它们都可以在 `playbook` 文件夹下找到。
+所有必需的资产都可以在 [Portfolio Optimization 仓库](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/portfolio-optimization/assets/) 中找到。  在运行的剧本中，它们都可以在 `playbook` 文件夹下找到。
 
-- `cvar_basic.ipynb` - 主要剧本笔记本。  
+- `cvar_basic.ipynb` - 主要剧本笔记本。
 - `/setup/README.md` - Playbook 环境快速入门指南。
 - `/setup/start_playbook.sh` - 在 Docker 容器中开始安装 playbook 的脚本
 - `/setup/setup_playbook.sh` - 在用户进入 jupyterlab 环境之前配置 Docker 容器
-- `/setup/pyproject.toml` - 用作 setup_playbook 中的命令将安装到 playbook 环境中的库列表 
+- `/setup/pyproject.toml` - 用作 setup_playbook 中的命令将安装到 playbook 环境中的库列表
 - `cuDF, cuML, and cuGraph folders` - 更多示例笔记本，可继续您的 GPU 加速数据科学之旅。  当您启动 Docker 容器时，这些将成为 Docker 容器的一部分。
 
 ## 时间与风险
@@ -79,13 +80,13 @@
 - **风险：**
   - 最小，因为它在 Docker 容器中运行。
 
-* **回滚：** 停止 Docker 容器并删除克隆的存储库以完全删除安装。
+* **回滚：** 停止 Docker 容器并删除克隆的仓库以完全删除安装。
 
 * **最后更新：** 2026 年 1 月 21 日
   * 使用正确的项目路径更新 `git clone` 命令。
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤 1. 验证您的环境
 
 我们首先验证您是否有可用的 GPU、git 和 Docker。  打开终端，然后复制并粘贴以下命令：
@@ -118,11 +119,11 @@ start_playbook.sh 将：
 使用剧本时请保持终端窗口打开。
 
 您可以通过三种方式访问​​ Jupyterlab 服务器
-1. 如果在 DGX Spark 上本地运行，则位于 `http://127.0.0.1:8888` 处。 
+1. 如果在 DGX Spark 上本地运行，则位于 `http://127.0.0.1:8888` 处。
 2. 如果通过网络使用无头 DGX Spark，请在 `http://<SPARK_IP>:8888` 处。
 3. 通过在终端中使用 `ssh -L 8888:localhost:8888 username@spark-IP` 创建 SSH 隧道，并在主机上的浏览器中转到 `http://127.0.0.1:8888`
 
-进入 Jupyterlab 后，您将看到一个包含 `cvar_basic.ipynb` 的目录以及文件夹 `cudf`、`cuml` 和 `cugraph`。 
+进入 Jupyterlab 后，您将看到一个包含 `cvar_basic.ipynb` 的目录以及文件夹 `cudf`、`cuml` 和 `cugraph`。
 
 - `cvar_basic.ipynb` 是 playbook 笔记本。  您需要通过双击该文件来打开它。
 - `cudf`、`cuml`、`cugraph` 文件夹包含标准 RAPIDS 库示例笔记本，可帮助您继续探索。
@@ -132,9 +133,9 @@ start_playbook.sh 将：
 
 ## 步骤 3. 运行笔记本
 
-进入 jupyterlab 后，您要做的就是运行 `cvar_basic.ipynb`。 
+进入 jupyterlab 后，您要做的就是运行 `cvar_basic.ipynb`。
 
-在开始运行笔记本中的单元之前，**请按照笔记本中的说明将内核更改为“Portfolio Optimization”。** 如果不这样做，将导致第二个代码单元出错。  如果您已经启动，则必须将其设置为正确的内核，然后重新启动内核，然后重试。 
+在开始运行笔记本中的单元之前，**请按照笔记本中的说明将内核更改为“Portfolio Optimization”。** 如果不这样做，将导致第二个代码单元出错。  如果您已经启动，则必须将其设置为正确的内核，然后重新启动内核，然后重试。
 
 您可以使用 `Shift + Enter` 按照自己的节奏手动运行每个单元，或使用 `Run > Run All` 运行所有单元。
 
@@ -186,11 +187,11 @@ start_playbook.sh 将：
 如有疑问或问题，请访问：
 - [GitHub Issues](https://github.com/NVIDIA-AI-Blueprints/quantitative-portfolio-optimization/issues)
 
-## 故障排除
-
-<!-- 
-故障排除模板：虽然是可选的，但此资源可以显着帮助用户解决常见问题。
-将 {} 中的所有占位符内容替换为您的实际故障排除信息。
+<a id="troubleshooting"></a>
+## 故障排查
+<!--
+故障排查模板：虽然是可选的，但此资源可以显着帮助用户解决常见问题。
+将 {} 中的所有占位符内容替换为您的实际故障排查信息。
 完成后删除这些注释块。
 
 目的：为用户可能遇到的问题提供快速解决方案。
@@ -206,16 +207,16 @@ start_playbook.sh 将：
 
 
 
-<!-- 
+<!--
 为可能与您的项目相关的一些常见已知问题保留了空间。在更改或删除之前评估潜在后果。
 -->
 
-> [！笔记] 
-> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。 
-> 由于许多应用程序仍在更新以利用 UMA，因此即使在 
+> [！笔记]
+> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。
+> 由于许多应用程序仍在更新以利用 UMA，因此即使在
 > DGX Spark 的内存容量。如果发生这种情况，请使用以下命令手动刷新缓冲区缓存：
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 ```
 
-有关最新的已知问题，请查看 [DGX Spark User Guide](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。
+有关最新的已知问题，请查看 [DGX Spark 用户指南](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。

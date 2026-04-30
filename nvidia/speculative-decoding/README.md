@@ -1,32 +1,33 @@
-# 推测性解码
+# 投机采样
 
 > 了解如何设置投机采样以在 Spark 上进行快速推理
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-  - [Option 1: EAGLE-3](#option-1-eagle-3)
-  - [Option 2: Draft Target](#option-2-draft-target)
-- [Run on Two Sparks](#run-on-two-sparks)
-  - [Step 1. Configure Docker Permissions](#step-1-configure-docker-permissions)
-  - [Step 2. Network Setup](#step-2-network-setup)
-  - [Step 3. Set Container Name Variable](#step-3-set-container-name-variable)
-  - [Step 4. Start the TRT-LLM Multi-Node Container](#step-4-start-the-trt-llm-multi-node-container)
-  - [Step 5. Configure OpenMPI Hostfile](#step-5-configure-openmpi-hostfile)
-  - [Step 6. Launch Eagle3 Speculative Decoding](#step-6-launch-eagle3-speculative-decoding)
-  - [Step 7. Validate the API](#step-7-validate-the-api)
-  - [Step 8. Cleanup](#step-8-cleanup)
-  - [Step 9. Next Steps](#step-9-next-steps)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+  - [选项 1：EAGLE-3](#option-1-eagle-3)
+  - [选项 2：Draft-Target](#option-2-draft-target)
+- [在两台 Spark 上运行](#run-on-two-sparks)
+  - [步骤1.配置Docker权限](#step-1-configure-docker-permissions)
+  - [步骤 2. 网络设置](#step-2-network-setup)
+  - [步骤 3. 设置容器名称变量](#step-3-set-container-name-variable)
+  - [步骤4.启动TRT-LLM多节点容器](#step-4-start-the-trt-llm-multi-node-container)
+  - [步骤 5. 配置 OpenMPI 主机文件](#step-5-configure-openmpi-hostfile)
+  - [步骤 6. 启动 Eagle3 投机采样](#step-6-launch-eagle3-speculative-decoding)
+  - [步骤 7. 验证 API](#step-7-validate-the-api)
+  - [步骤 8. 清理](#step-8-cleanup)
+  - [步骤 9. 后续步骤](#step-9-next-steps)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
 
-推测性解码通过使用 **小而快速的模型** 提前起草多个标记，然后让 **更大的模型** 快速验证或调整它们，从而加速文本生成。
+投机采样通过使用 **小而快速的模型** 提前起草多个标记，然后让 **更大的模型** 快速验证或调整它们，从而加速文本生成。
 这样，大模型不需要逐步预测每个令牌，从而在保持输出质量的同时减少延迟。
 
 ## 你将完成什么
@@ -34,20 +35,20 @@
 您将使用两种方法在 NVIDIA Spark 上使用 TensorRT-LLM 探索投机采样：EAGLE-3 和 Draft-Target。
 这些示例演示了如何在保持输出质量的同时加速大型语言模型推理。
 
-## 为什么是两个火花？
+## 为什么是两台 Spark？
 
-单个 DGX Spark 具有在 CPU 和 GPU 之间共享的 128 GB 统一内存。这足以运行带有 EAGLE-3 的 GPT-OSS-120B 或带有 Draft-Target 的 Llama-3.3-70B 等模型，如 **Instructions** 选项卡中所示。
+单个 DGX Spark 具有在 CPU 和 GPU 之间共享的 128 GB 统一内存。这足以运行带有 EAGLE-3 的 GPT-OSS-120B 或带有 Draft-Target 的 Llama-3.3-70B 等模型，如 **操作步骤** 选项卡中所示。
 
 **Qwen3-235B-A22B** 等较大的模型超出了单个 Spark 在内存中的容量 - 即使使用 FP4 量化，模型权重、KV 缓存和 Eagle3 草稿头总共也需要超过 128 GB。通过连接两个 Spark，您可以将可用内存增加一倍，达到 256 GB，从而可以为这些更大的模型提供服务。
 
-**在两个 Sparks 上运行**选项卡将逐步完成此设置。两个 Spark 通过 QSFP 电缆连接，并使用 **张量并行性 (TP=2)** 来分割模型 - 每个 Spark 保存每层权重矩阵的一半，并计算每个前向传递的其部分。节点使用 NCCL 和 OpenMPI 通过高带宽链路传送中间结果，因此该模型作为跨两个设备的单个逻辑实例运行。
+**在两台 Spark 上运行**选项卡将逐步完成此设置。两台 Spark 通过 QSFP 电缆连接，并使用 **张量并行性 (TP=2)** 来分割模型 - 每台 Spark 保存每层权重矩阵的一半，并计算每个前向传递的对应部分。节点使用 NCCL 和 OpenMPI 通过高带宽链路传送中间结果，因此该模型作为跨两台设备的单个逻辑实例运行。
 
-简而言之：两个 Spark 可以让您运行对于一个来说太大的模型，而顶部的投机采样 (Eagle3) 通过并行起草和验证多个标记进一步加速推理。
+简而言之：两台 Spark 可以让您运行单台设备放不下的模型，而 Eagle3 投机采样会通过并行起草和验证多个 token 进一步加速推理。
 
 ## 开始之前需要了解什么
 
 - Docker 和容器化应用程序的经验
-- 了解推测性解码概念
+- 了解投机采样概念
 - 熟悉 TensorRT-LLM 服务和 API 端点
 - 了解大型语言模型的 GPU 内存管理
 
@@ -59,7 +60,7 @@
   ```bash
   docker run --gpus all nvcr.io/nvidia/tensorrt-llm/release:1.3.0rc12 nvidia-smi
   ```
-- 用于模型访问的主动 HuggingFace 令牌
+- 用于模型访问的主动 Hugging Face 令牌
 - 用于模型下载的网络连接
 
 
@@ -72,8 +73,8 @@
   * 升级到最新容器1.3.0rc12
   * 添加在两个 Spark 上使用 Qwen3-235B-A22B 进行投机采样的示例
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤1.配置Docker权限
 
 要在不使用 sudo 的情况下轻松管理容器，您必须位于 `docker` 组中。如果您选择跳过此步骤，则需要使用 sudo 运行 Docker 命令。
@@ -101,6 +102,7 @@ export HF_TOKEN=<your_huggingface_token>
 
 ## 步骤 3. 运行投机采样方法
 
+<a id="option-1-eagle-3"></a>
 ### 选项 1：EAGLE-3
 
 通过执行以下命令来运行 EAGLE-3 投机采样：
@@ -157,13 +159,14 @@ curl -X POST http://localhost:8000/v1/completions \
 
 **EAGLE-3 投机采样的主要特点**
 
-- **更简单的部署** - EAGLE-3 没有管理单独的草稿模型，而是使用内置的草稿头在内部生成推测令牌。
+- **更简单的部署** - EAGLE-3 没有管理单独的草稿模型，而是使用内置的草稿头在内部生成草稿 token。
 
 - **更高的准确性** - 通过融合模型多层的特征，草稿令牌更有可能被接受，从而减少浪费的计算。
 
 - **更快的生成** - 每个前向传递并行验证多个令牌，从而减少自回归推理的延迟。
 
-### 选项 2：草案目标
+<a id="option-2-draft-target"></a>
+### 选项 2：Draft-Target
 
 执行以下命令来设置并运行草稿目标投机采样：
 
@@ -208,7 +211,7 @@ curl -X POST http://localhost:8000/v1/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "nvidia/Llama-3.3-70B-Instruct-FP4",
-    "prompt": "Explain the benefits of speculative decoding:",
+    "prompt": "解释投机采样的优势：",
     "max_tokens": 150,
     "temperature": 0.7
   }'
@@ -217,7 +220,7 @@ curl -X POST http://localhost:8000/v1/completions \
 **草稿目标的主要特点：**
 
 - **高效的资源利用**：8B草稿模型加速70B目标模型
-- **灵活配置**：可调整草案令牌长度以进行优化
+- **灵活配置**：可调整草稿 token 长度以进行优化
 - **内存效率**：使用 FP4 量化模型来减少内存占用
 - **兼容模型**：使用具有一致标记化的 Llama 系列模型
 
@@ -239,10 +242,12 @@ docker stop <container_id>
 - 尝试不同的 `max_draft_len` 值（1、2、3、4、8）
 - 监控令牌接受率和吞吐量改进
 - 使用不同的提示长度和生成参数进行测试
-- 阅读有关投机采样 [here](https://nvidia.github.io/TensorRT-LLM/advanced/speculative-decoding.html) 的更多信息。
+- 阅读有关投机采样 [这里](https://nvidia.github.io/TensorRT-LLM/advanced/speculative-decoding.html) 的更多信息。
 
-## 靠两个火花奔跑
+<a id="run-on-two-sparks"></a>
+## 在两台 Spark 上运行
 
+<a id="step-1-configure-docker-permissions"></a>
 ### 步骤1.配置Docker权限
 
 **在 Spark A 和 Spark B 上运行：**
@@ -252,6 +257,7 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
+<a id="step-2-network-setup"></a>
 ### 步骤 2. 网络设置
 
 按照 **[Connect Two Sparks](https://build.nvidia.com/spark/connect-two-sparks/stacked-sparks)** 手册中的网络设置说明进行操作。
@@ -278,21 +284,23 @@ newgrp docker
 
 完成连接两个 Spark 设置后，返回此处继续 TRT-LLM 容器设置。
 
+<a id="step-3-set-container-name-variable"></a>
 ### 步骤 3. 设置容器名称变量
 
 **在 Spark A 和 Spark B 上运行：**
 
 ```bash
-export TRT LLM_MN_CONTAINER=trtllm-multinode
+export TRTLLM_MN_CONTAINER=trtllm-multinode
 ```
 
+<a id="step-4-start-the-trt-llm-multi-node-container"></a>
 ### 步骤4.启动TRT-LLM多节点容器
 
 **在 Spark A 和 Spark B 上运行：**
 
 ```bash
 docker run -d --rm \
-  --name $TRT LLM_MN_CONTAINER \
+  --name $TRTLLM_MN_CONTAINER \
   --gpus '"device=all"' \
   --network host \
   --ulimit memlock=-1 \
@@ -316,7 +324,7 @@ docker run -d --rm \
 核实：
 
 ```bash
-docker logs -f $TRT LLM_MN_CONTAINER
+docker logs -f $TRTLLM_MN_CONTAINER
 ```
 
 最后的预期输出：
@@ -338,6 +346,7 @@ drwx------ 1 root root 4.0K Jan 13 05:12 ..
 Starting SSH
 ```
 
+<a id="step-5-configure-openmpi-hostfile"></a>
 ### 步骤 5. 配置 OpenMPI 主机文件
 
 主机文件告诉 MPI 哪些节点参与分布式执行。使用步骤 2 中配置的 `enp1s0f1np1` 接口的 IP。
@@ -354,51 +363,52 @@ EOF
 **在 Spark A 和 Spark B 上运行**以将主机文件复制到每个容器中：
 
 ```bash
-docker cp ~/openmpi-hostfile $TRT LLM_MN_CONTAINER:/etc/openmpi-hostfile
+docker cp ~/openmpi-hostfile $TRTLLM_MN_CONTAINER:/etc/openmpi-hostfile
 ```
 
 验证连接：
 
 ```bash
-docker exec -it $TRT LLM_MN_CONTAINER bash -c "mpirun -np 2 hostname"
+docker exec -it $TRTLLM_MN_CONTAINER bash -c "mpirun -np 2 hostname"
 ```
 
 预期输出：
 
 ```
-nvidia@spark-afe0:~$ docker exec -it $TRT LLM_MN_CONTAINER bash -c "mpirun -np 2 hostname"
+nvidia@spark-afe0:~$ docker exec -it $TRTLLM_MN_CONTAINER bash -c "mpirun -np 2 hostname"
 Warning: Permanently added '[192.168.200.13]:2233' (ED25519) to the list of known hosts.
 spark-afe0
 spark-ae11
 nvidia@spark-afe0:~$
 ```
 
+<a id="step-6-launch-eagle3-speculative-decoding"></a>
 ### 步骤 6. 启动 Eagle3 投机采样
 
-Eagle3 推测性解码通过提前预测多个标记，然后并行验证它们来加速推理。与标准自回归生成相比，这可以提供显着的加速。
+Eagle3 投机采样通过提前预测多个标记，然后并行验证它们来加速推理。与标准自回归生成相比，这可以提供显着的加速。
 
-#### 设置您的拥抱脸标记
+#### 设置您的 Hugging Face 令牌
 
 ```bash
 export HF_TOKEN=your_huggingface_token_here
 ```
 
-#### 在两个节点上下载 Eagle3 推测模型
+#### 在两个节点上下载 Eagle3 投机采样模型
 
 ```bash
 docker exec \
   -e HF_TOKEN=$HF_TOKEN \
-  -it $TRT LLM_MN_CONTAINER bash -c "
+  -it $TRTLLM_MN_CONTAINER bash -c "
     mpirun -x HF_TOKEN -np 2 bash -c 'hf download nvidia/Qwen3-235B-A22B-Eagle3 --local-dir /opt/Qwen3-235B-A22B-Eagle3/'
 "
 ```
 
 #### 创建 Eagle3 投机采样配置
 
-此配置支持使用 3 个草案令牌和保守的内存设置进行 Eagle 投机采样。
+此配置支持使用 3 个草稿 token 和保守的内存设置进行 Eagle 投机采样。
 
 ```bash
-docker exec -it $TRT LLM_MN_CONTAINER bash -c "cat > /tmp/extra-llm-api-config.yml <<EOF
+docker exec -it $TRTLLM_MN_CONTAINER bash -c "cat > /tmp/extra-llm-api-config.yml <<EOF
 enable_attention_dp: false
 disable_overlap_scheduler: false
 enable_autotuner: false
@@ -424,7 +434,7 @@ EOF
 docker exec \
   -e MODEL="nvidia/Qwen3-235B-A22B-FP4" \
   -e HF_TOKEN=$HF_TOKEN \
-  -it $TRT LLM_MN_CONTAINER bash -c '
+  -it $TRTLLM_MN_CONTAINER bash -c '
     mpirun -x CPATH=/usr/local/cuda/include \
            -x TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas \
            -x HF_TOKEN \
@@ -448,6 +458,7 @@ INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 ```
 
+<a id="step-7-validate-the-api"></a>
 ### 步骤 7. 验证 API
 
 **仅在 Spark A 上运行。** 服务器正在侦听 Spark A，因此从那里测试端点：
@@ -464,6 +475,7 @@ curl -s http://localhost:8355/v1/chat/completions \
 
 预期：带有生成文本的 JSON 响应。这证实了具有 Eagle3 投机采样功能的多节点 TensorRT-LLM 服务器正常工作。
 
+<a id="step-8-cleanup"></a>
 ### 步骤 8. 清理
 
 #### 停止容器
@@ -471,7 +483,7 @@ curl -s http://localhost:8355/v1/chat/completions \
 **在 Spark A 和 B 上运行：**
 
 ```bash
-docker stop $TRT LLM_MN_CONTAINER
+docker stop $TRTLLM_MN_CONTAINER
 ```
 
 由于 `--rm` 标志，容器将被自动删除。
@@ -488,6 +500,7 @@ rm -rf $HOME/.cache/huggingface/hub/models--nvidia--Qwen3*
 
 这将删除模型文件（约数百 GB）。如果您打算再次运行安装程序，请跳过此步骤。
 
+<a id="step-9-next-steps"></a>
 ### 步骤 9. 后续步骤
 
 现在您已经运行了 Eagle3 投机采样，请考虑以下优化和实验：
@@ -495,17 +508,17 @@ rm -rf $HOME/.cache/huggingface/hub/models--nvidia--Qwen3*
 - **调整草稿长度：** 修改配置中的 `max_draft_len` （尝试 2-5 之间的值）以平衡推测速度与准确性
 - **尝试不同的模型：** 尝试支持 Eagle 投机采样的其他模型对
 - **优化批量大小：** 调整 `cuda_graph_config` 中的 `max_batch_size` 以实现吞吐量-延迟权衡
-- **了解更多：** 查看 [TensorRT-LLM Speculative Decoding documentation](https://nvidia.github.io/TensorRT-LLM/advanced/speculative-decoding.html) 以获取高级调整选项
+- **了解更多：** 查看 [TensorRT-LLM 投机采样文档](https://nvidia.github.io/TensorRT-LLM/advanced/speculative-decoding.html) 以获取高级调整选项
 - **基准性能：** 比较有和没有投机采样的推理速度，以测量加速增益
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|--------|-----|
 | “CUDA 内存不足”错误 | GPU显存不足 | 将 `kv_cache_free_gpu_memory_fraction` 减少到 0.9 或使用具有更多 VRAM 的设备 |
 | 容器无法启动 | Docker GPU 支持问题 | 验证 `nvidia-docker` 已安装并且支持 `--gpus=all` 标志 |
-| 模型下载失败 | 网络或身份验证问题 | 检查 HuggingFace 身份验证和网络连接 |
-| 无法访问 URL 的门禁存储库 | 某些 HuggingFace 模型的访问受到限制 | 重新生成你的 [HuggingFace token](https://huggingface.co/docs/hub/en/security-tokens);并请求在您的网络浏览器上访问 [gated model](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
+| 模型下载失败 | 网络或身份验证问题 | 检查 Hugging Face 身份验证和网络连接 |
+| 无法访问 URL 的门禁仓库 | 某些 Hugging Face 模型的访问受到限制 | 重新生成你的 [Hugging Face token](https://huggingface.co/docs/hub/en/security-tokens);并请求在您的网络浏览器上访问 [gated model](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
 | 服务器没有响应 | 端口冲突或防火墙 | 检查8000端口是否可用且未被阻塞 |
 | `mpirun` 失败并拒绝 SSH 连接 | 容器或节点之间未配置 SSH | 从 Connect Two Sparks playbook 完成 SSH 设置；验证 `ssh <node_ip>` 无需密码即可从两个节点正常工作 |
 | `mpirun` 与远程节点的连接挂起或超时 | 主机文件 IP 与实际节点 IP 不匹配 | 验证 `/etc/openmpi-hostfile` 中的 IP 与分配给具有 `ip addr show` 的网络接口的 IP 匹配 |

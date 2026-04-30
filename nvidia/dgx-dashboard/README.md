@@ -234,7 +234,6 @@ print(f"Saved image as sdxl_output.png")
 
 <a id="troubleshooting"></a>
 ## 故障排查
-
 | 现象 | 原因 | 解决方法 |
 |---------|-------|-----|
 | 用户无法运行更新 | 用户不在 sudo 组中 | 将用户加入 sudo 组：`sudo usermod -aG sudo <USERNAME>`；然后运行 `newgrp docker`|
@@ -243,4 +242,4 @@ print(f"Saved image as sdxl_output.png")
 | 监控中看不到 GPU | 驱动问题 | 使用 `nvidia-smi` 检查 GPU 状态 |
 
 
-最新已知问题请参阅 [DGX Spark User Guide](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。
+最新已知问题请参阅 [DGX Spark 用户指南](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。

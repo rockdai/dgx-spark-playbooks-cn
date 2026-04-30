@@ -4,28 +4,32 @@
 
 ## 目录
 
-- [Overview](#overview)
-  - [Basic idea](#basic-idea)
-  - [What you'll accomplish](#what-youll-accomplish)
-  - [What to know before starting](#what-to-know-before-starting)
-  - [Prerequisites](#prerequisites)
-  - [Time & risk](#time-risk)
-- [Instructions](#instructions)
-  - [Step 2. Configure NGC authentication](#step-2-configure-ngc-authentication)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+  - [基本思路](#basic-idea)
+  - [你将完成什么](#what-youll-accomplish)
+  - [开始之前需要了解什么](#what-to-know-before-starting)
+  - [先决条件](#prerequisites)
+  - [时间与风险](#time-risk)
+- [操作步骤](#instructions)
+  - [步骤 2. 配置 NGC 身份验证](#step-2-configure-ngc-authentication)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
+<a id="basic-idea"></a>
 ### 基本思路
 
 NVIDIA NIM 是容器化软件，可在 NVIDIA GPU 上提供快速、可靠的 AI 模型服务和推理。本手册演示了如何在 DGX Spark 设备上为 LLM 运行 NIM 微服务，通过简单的 Docker 工作流程实现本地 GPU 推理。您将使用 NVIDIA 的注册表进行身份验证，启动 NIM 推理微服务，并执行基本推理测试以验证功能。
 
+<a id="what-youll-accomplish"></a>
 ### 你将完成什么
 
-您将在 DGX Spark 设备上启动 NIM 容器，以公开用于文本完成的 GPU 加速的 HTTP 端点。虽然这些指令适用于 Llama 3.1 8B NIM，但包括 [Qwen3-32 NIM](https://catalog.ngc.nvidia.com/orgs/nim/teams/qwen/containers/qwen3-32b-dgx-spark) 在内的其他 NIM 可用于 DGX Spark（请参阅 [here](https://docs.nvidia.com/nim/large-language-models/1.14.0/release-notes.html#new-language-models%20)）。
+您将在 DGX Spark 设备上启动 NIM 容器，以公开用于文本完成的 GPU 加速的 HTTP 端点。虽然这些指令适用于 Llama 3.1 8B NIM，但包括 [Qwen3-32 NIM](https://catalog.ngc.nvidia.com/orgs/nim/teams/qwen/containers/qwen3-32b-dgx-spark) 在内的其他 NIM 可用于 DGX Spark（请参阅 [这里](https://docs.nvidia.com/nim/large-language-models/1.14.0/release-notes.html#new-language-models%20)）。
 
+<a id="what-to-know-before-starting"></a>
 ### 开始之前需要了解什么
 
 - 在终端环境中工作
@@ -33,17 +37,18 @@ NVIDIA NIM 是容器化软件，可在 NVIDIA GPU 上提供快速、可靠的 AI
 - 基本熟悉 REST API 和curl 命令
 - 了解 NVIDIA GPU 环境和 CUDA
 
+<a id="prerequisites"></a>
 ### 先决条件
 
 - 安装了 NVIDIA 驱动程序的 DGX Spark 设备
   ```bash
   nvidia-smi
   ```
-- 配置了 NVIDIA Container Toolkit 的 Docker，指令 [here](https://docs.nvidia.com/dgx/dgx-spark/nvidia-container-runtime-for-docker.html)
+- 配置了 NVIDIA Container Toolkit 的 Docker，指令 [这里](https://docs.nvidia.com/dgx/dgx-spark/nvidia-container-runtime-for-docker.html)
   ```bash
   docker run -it --gpus=all nvcr.io/nvidia/cuda:13.0.1-devel-ubuntu24.04 nvidia-smi
   ```
-- 具有来自 [here](https://ngc.nvidia.com/setup/api-key) 的 API 密钥的 NGC 帐户
+- 具有来自 [这里](https://ngc.nvidia.com/setup/api-key) 的 API 密钥的 NGC 账户
   ```bash
   echo $NGC_API_KEY | grep -E '^[a-zA-Z0-9]{86}=='
   ```
@@ -53,6 +58,7 @@ NVIDIA NIM 是容器化软件，可在 NVIDIA GPU 上提供快速、可靠的 AI
   ```
 
 
+<a id="time-risk"></a>
 ### 时间与风险
 
 * **预计时间：** 15-30 分钟用于设置和验证
@@ -65,8 +71,8 @@ NVIDIA NIM 是容器化软件，可在 NVIDIA GPU 上提供快速、可靠的 AI
   * 将 docker 容器版本更新为 cuda:13.0.1-devel-ubuntu24.04
   * 添加docker容器权限设置说明
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤 1. 验证环境先决条件
 
 检查您的系统是否满足运行支持 GPU 的容器的基本要求。
@@ -84,6 +90,7 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
+<a id="step-2-configure-ngc-authentication"></a>
 ### 步骤 2. 配置 NGC 身份验证
 
 使用 NGC API 密钥设置对 NVIDIA 容器注册表的访问。
@@ -155,7 +162,7 @@ curl -X 'POST' \
       "stop": ["hello"]
 
     }'
-    
+
 ```
 
 预期输出应该是一个 JSON 响应，其中包含带有生成文本的完成字段。
@@ -188,8 +195,8 @@ rm -rf "$LOCAL_NIM_CACHE"
 
 测试与您首选的 HTTP 客户端或 SDK 的集成，以开始构建应用程序。
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|--------|-----|
 | 容器因 GPU 错误而无法启动 | 未配置 NVIDIA 容器工具包 | 安装 nvidia-container-toolkit 并重新启动 Docker |
@@ -199,8 +206,8 @@ rm -rf "$LOCAL_NIM_CACHE"
 | 未找到运行时 | NVIDIA 容器工具包未正确配置 | 运行 `sudo nvidia-ctk runtime configure --runtime=docker` 并重新启动 Docker |
 
 > [！笔记]
-> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。 
-> 由于许多应用程序仍在更新以利用 UMA，因此即使在 
+> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。
+> 由于许多应用程序仍在更新以利用 UMA，因此即使在
 > DGX Spark 的内存容量。如果发生这种情况，请使用以下命令手动刷新缓冲区缓存：
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'

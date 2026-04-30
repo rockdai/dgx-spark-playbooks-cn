@@ -308,7 +308,6 @@ ssh -L 11000:localhost:11000 <YOUR_USERNAME>@<SPARK_HOSTNAME>.local
 
 <a id="troubleshooting"></a>
 ## 故障排查
-
 ## 通过 NVIDIA Sync 连接时的常见问题
 
 | 现象 | 原因 | 解决方法 |

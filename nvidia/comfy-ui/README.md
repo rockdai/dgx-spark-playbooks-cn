@@ -4,19 +4,20 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
 
 Comfy UI 是一款开源 Web 服务器应用程序，用于使用 SDXL、Flux 等基于扩散的模型生成 AI 图像。它具有基于浏览器的 UI，可让您通过多个步骤创建、编辑和运行图像生成和编辑工作流程。这些生成和编辑步骤（例如，加载模型、添加文本或采样）可在 UI 中配置为节点，并且您可以使用电线连接节点以形成工作流程。
 
-Comfy UI 使用主机的 GPU 进行推理，因此您可以将其安装在 DGX Spark 上，并直接在设备上进行所有图像生成和编辑。  
+Comfy UI 使用主机的 GPU 进行推理，因此您可以将其安装在 DGX Spark 上，并直接在设备上进行所有图像生成和编辑。
 
 工作流程保存为 JSON 文件，因此您可以对它们进行版本控制，以供将来的工作、协作和可重复性使用。
 
@@ -49,7 +50,7 @@ Comfy UI 使用主机的 GPU 进行推理，因此您可以将其安装在 DGX S
 
 ## 附属文件
 
-所有需要的资源都可以在[in the Comfy UI repository on GitHub](https://github.com/comfyanonymous/ComfyUI)找到
+所有需要的资源都可以在[Comfy UI GitHub 仓库](https://github.com/comfyanonymous/ComfyUI)找到
 
 - `requirements.txt` - Comfy UI 安装的 Python 依赖项
 - `main.py` - 主要 Comfy UI 服务器应用程序入口点
@@ -57,16 +58,16 @@ Comfy UI 使用主机的 GPU 进行推理，因此您可以将其安装在 DGX S
 
 ## 时间与风险
 
-* **Estimated time:** 30-45分钟（含模型下载）
-* **Risk level:** 中
+* **预计时间：** 30-45分钟（含模型下载）
+* **风险级别：** 中
   * 模型下载很大（~2GB），可能会因网络问题而失败
   * 端口 8188 必须可访问以用于 Web 界面功能
-* **Rollback:** 可以删除虚拟环境以删除所有已安装的软件包。可以从检查点目录中手动删除下载的模型。
+* **回滚：** 可以删除虚拟环境以删除所有已安装的软件包。可以从检查点目录中手动删除下载的模型。
 * **最后更新：** 2025 年 10 月 11 日
   * 将 Comfy UI PyTorch 更新至 CUDA 13.0
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤 1. 验证系统先决条件
 
 在继续安装之前，请检查您的 NVIDIA DGX Spark 设备是否满足要求。
@@ -101,9 +102,9 @@ pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu13
 
 此安装的目标是 CUDA 13.0 与 Blackwell 架构 GPU 兼容。
 
-## 步骤 4. 克隆 Comfy UI 存储库
+## 步骤 4. 克隆 Comfy UI 仓库
 
-从官方存储库下载 Comfy UI 源代码。
+从官方仓库下载 Comfy UI 源代码。
 
 ```bash
 git clone https://github.com/comfyanonymous/ComfyUI.git
@@ -180,22 +181,22 @@ rm -rf ComfyUI/
 
 图像生成应在 30-60 秒内完成，具体取决于您的硬件配置。
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|-------|-----|
 | PyTorch CUDA 不可用 | CUDA 版本不正确或缺少驱动程序 | 验证`nvcc --version`与cu129匹配，重新安装PyTorch |
 | 模型下载失败 | 网络连接或存储空间 | 检查互联网连接，验证 20GB+ 可用空间 |
 | 网页界面无法访问 | 防火墙屏蔽8188端口 | 配置防火墙允许8188端口，检查IP地址 |
-| 手动刷新缓冲区缓存后出现 GPU 内存不足错误 | 模型 VRAM 不足 | 使用较小的型号或启用 CPU 回退模式 |
+| 手动刷新缓冲区缓存后出现 GPU 内存不足错误 | 模型 VRAM 不足 | 使用较小的模型或启用 CPU 回退模式 |
 
-> [！笔记] 
-> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。 
-> 由于许多应用程序仍在更新以利用 UMA，因此即使在 
+> [！笔记]
+> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。
+> 由于许多应用程序仍在更新以利用 UMA，因此即使在
 > DGX Spark 的内存容量。如果发生这种情况，请使用以下命令手动刷新缓冲区缓存：
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 ```
 
 
-有关最新的已知问题，请查看[DGX Spark User Guide](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。
+有关最新的已知问题，请查看[DGX Spark 用户指南](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。

@@ -5,53 +5,58 @@
 
 ## 目录
 
-- [Overview](#overview)
-  - [Overview](#overview)
-  - [Basic idea](#basic-idea)
-  - [What you'll accomplish](#what-youll-accomplish)
-  - [Notice and disclaimers](#notice-and-disclaimers)
-  - [Isolation layers (OpenShell)](#isolation-layers-openshell)
-  - [What to know before starting](#what-to-know-before-starting)
-  - [Prerequisites](#prerequisites)
-  - [Have ready before you begin](#have-ready-before-you-begin)
-  - [Ancillary files](#ancillary-files)
-  - [Time and risk](#time-and-risk)
-- [Instructions](#instructions)
-  - [Step 1. Configure Docker and the NVIDIA container runtime](#step-1-configure-docker-and-the-nvidia-container-runtime)
-  - [Step 2. Install Ollama](#step-2-install-ollama)
-  - [Step 3. Pull the Nemotron 3 Super model](#step-3-pull-the-nemotron-3-super-model)
-  - [Step 4. Install NemoClaw](#step-4-install-nemoclaw)
-  - [Step 5. Connect to the sandbox and verify inference](#step-5-connect-to-the-sandbox-and-verify-inference)
-  - [Step 6. Talk to the agent (CLI)](#step-6-talk-to-the-agent-cli)
-  - [Step 7. Interactive TUI](#step-7-interactive-tui)
-  - [Step 8. Exit the sandbox and access the Web UI](#step-8-exit-the-sandbox-and-access-the-web-ui)
-  - [Step 9. Create a Telegram bot](#step-9-create-a-telegram-bot)
-  - [Step 10. Configure and start the Telegram bridge](#step-10-configure-and-start-the-telegram-bridge)
-  - [Step 11. Stop services](#step-11-stop-services)
-  - [Step 12. Uninstall NemoClaw](#step-12-uninstall-nemoclaw)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+  - [概述](#overview-1)
+  - [基本思路](#basic-idea)
+  - [你将完成什么](#what-youll-accomplish)
+  - [通知和免责声明](#notice-and-disclaimers)
+  - [隔离层 (OpenShell)](#isolation-layers-openshell)
+  - [开始之前需要了解什么](#what-to-know-before-starting)
+  - [先决条件](#prerequisites)
+  - [开始前做好准备](#have-ready-before-you-begin)
+  - [附属文件](#ancillary-files)
+  - [时间与风险](#time-and-risk)
+- [操作步骤](#instructions)
+  - [步骤 1. 配置 Docker 和 NVIDIA 容器运行时](#step-1-configure-docker-and-the-nvidia-container-runtime)
+  - [步骤2.安装Ollama](#step-2-install-ollama)
+  - [步骤3.拉取 Nemotron 3 Super 模型](#step-3-pull-the-nemotron-3-super-model)
+  - [步骤 4. 安装 NemoClaw](#step-4-install-nemoclaw)
+  - [步骤 5. 连接到沙箱并验证推理](#step-5-connect-to-the-sandbox-and-verify-inference)
+  - [步骤 6. 与智能体交谈 (CLI)](#step-6-talk-to-the-agent-cli)
+  - [步骤 7. 交互式 TUI](#step-7-interactive-tui)
+  - [步骤8.退出沙箱并访问Web UI](#step-8-exit-the-sandbox-and-access-the-web-ui)
+  - [第 9 步：创建 Telegram 机器人](#step-9-create-a-telegram-bot)
+  - [步骤 10. 配置并启动 Telegram 桥](#step-10-configure-and-start-the-telegram-bridge)
+  - [步骤11.停止服务](#step-11-stop-services)
+  - [步骤12.卸载NemoClaw](#step-12-uninstall-nemoclaw)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
+<a id="overview-1"></a>
 ### 概述
 
+<a id="basic-idea"></a>
 ### 基本思路
 
 **NVIDIA NemoClaw** 是一个开源参考堆栈，可更安全地简化 OpenClaw 始终在线助手的运行。它安装 **NVIDIA OpenShell** 运行时（一种专为执行具有额外安全性的智能体而设计的环境）以及 NVIDIA Nemotron 等开源模型。单个安装程序命令即可处理 Node.js、OpenShell 和 NemoClaw CLI，然后引导您通过板载向导使用 Ollama 和 Nemotron 3 Super 在 DGX Spark 上创建沙盒智能体。
 
 在本剧本结束时，您将在 OpenShell 沙箱内拥有一个可工作的 AI 智能体，可通过 Web 仪表板和 Telegram 机器人进行访问，并将推理路由到 Spark 上的本地 Nemotron 3 Super 120B 模型 - 所有这些都无需将您的主机文件系统或网络暴露给智能体。
 
+<a id="what-youll-accomplish"></a>
 ### 你将完成什么
 
 - 在 DGX Spark 上为 OpenShell 配置 Docker 和 NVIDIA 容器运行时
-- 安装 Ollama，拉动 Nemotron 3 Super 120B，并将其配置为沙盒访问
+- 安装 Ollama，拉取 Nemotron 3 Super 120B，并将其配置为沙盒访问
 - 使用单个命令安装 NemoClaw（处理 Node.js、OpenShell 和 CLI）
 - 运行板载向导来创建沙箱并配置本地推理
 - 通过 CLI、TUI 和 Web UI 与客服人员聊天
 - 设置一个 Telegram 机器人，将消息转发给您的沙盒智能体
 
+<a id="notice-and-disclaimers"></a>
 ### 通知和免责声明
 
 以下部分描述了运行此演示时的安全、风险和您的责任。
@@ -75,8 +80,9 @@
 
 #### 参与者致谢
 
-通过参与此演示，您承认您对您的配置以及您连接的任何数据、帐户和工具承担全部责任。在法律允许的最大范围内，对于因配置或使用 NemoClaw 演示材料（包括 OpenClaw 或任何连接的工具或服务）而导致的任何数据丢失、设备损坏、安全事件或其他损害，NVIDIA 概不负责。
+通过参与此演示，您承认您对您的配置以及您连接的任何数据、账户和工具承担全部责任。在法律允许的最大范围内，对于因配置或使用 NemoClaw 演示材料（包括 OpenClaw 或任何连接的工具或服务）而导致的任何数据丢失、设备损坏、安全事件或其他损害，NVIDIA 概不负责。
 
+<a id="isolation-layers-openshell"></a>
 ### 隔离层 (OpenShell)
 
 | 层      | 它保护什么                                   | 当它适用时             |
@@ -86,12 +92,14 @@
 | 过程    | 阻止权限升级和危险的系统调用。| 锁定在沙箱创建时。  |
 | 推理  | 将模型 API 调用重新路由到受控后端。   | 运行时可热重载。  |
 
+<a id="what-to-know-before-starting"></a>
 ### 开始之前需要了解什么
 
 - Linux终端和SSH的基本使用
 - 熟悉 Docker（权限，`docker run`）
 - 对上述安全和风险部分的认识
 
+<a id="prerequisites"></a>
 ### 先决条件
 
 **硬件和访问：**
@@ -114,6 +122,7 @@ docker info --format '{{.ServerVersion}}'
 
 预计：Ubuntu 24.04、NVIDIA GB10 GPU、Docker 28.x+。
 
+<a id="have-ready-before-you-begin"></a>
 ### 开始前做好准备
 
 | 物品 | 哪里可以得到它 |
@@ -121,23 +130,26 @@ docker info --format '{{.ServerVersion}}'
 | NVIDIA API 密钥 | [build.nvidia.com/settings/api-keys](https://build.nvidia.com/settings/api-keys) |
 | Telegram 机器人令牌 | Telegram 上的 [@BotFather](https://t.me/BotFather) -- 使用 `/newbot` 创建 |
 
+<a id="ancillary-files"></a>
 ### 附属文件
 
 所有必需的资源均由 NemoClaw 安装程序处理。无需手动克隆。
 
-### 时间和风险
+<a id="time-and-risk"></a>
+### 时间与风险
 
 - **预计时间：** 20--30 分钟（Ollama 和模型已下载）。首次模型下载会增加约 15--30 分钟，具体取决于网络速度。
-- **风险级别：**中——您正在沙箱中运行人工智能智能体；隔离可以降低风险，但不能消除风险。使用干净的环境，不要连接敏感数据或生产帐户。
+- **风险级别：**中——您正在沙箱中运行人工智能智能体；隔离可以降低风险，但不能消除风险。使用干净的环境，不要连接敏感数据或生产账户。
 - **最后更新：** 2026 年 3 月 31 日
   * 首次出版
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 第一阶段：先决条件
 
 这些步骤为 NemoClaw 准备一个新的 DGX Spark。如果 Docker、NVIDIA 运行时和 Ollama 已配置，请跳至第 2 阶段。
 
+<a id="step-1-configure-docker-and-the-nvidia-container-runtime"></a>
 ### 步骤 1. 配置 Docker 和 NVIDIA 容器运行时
 
 OpenShell 的网关在 Docker 内运行 k3s。在 DGX Spark（Ubuntu 24.04，cgroup v2）上，必须使用 NVIDIA 运行时和主机 cgroup 命名空间模式配置 Docker。
@@ -184,6 +196,7 @@ newgrp docker
 > [！笔记]
 > DGX Spark 使用 cgroup v2。 OpenShell 的网关将 k3s 嵌入到 Docker 中，并且需要主机 cgroup 命名空间访问。如果没有 `default-cgroupns-mode: host`，网关可能会失败并出现“无法启动 ContainerManager”错误。
 
+<a id="step-2-install-ollama"></a>
 ### 步骤2.安装Ollama
 
 安装奥拉玛：
@@ -212,7 +225,8 @@ curl http://0.0.0.0:11434
 > [！重要的]
 > 始终通过 systemd (`sudo systemctl restart ollama`) 启动 Ollama — 不要使用 `ollama serve &`。手动启动的 Ollama 进程不会采用上面的 `OLLAMA_HOST=0.0.0.0` 设置，并且 NemoClaw 沙箱将无法到达推理服务器。
 
-### 步骤3.拉动 Nemotron 3 Super 模型
+<a id="step-3-pull-the-nemotron-3-super-model"></a>
+### 步骤3.拉取 Nemotron 3 Super 模型
 
 下载 Nemotron 3 Super 120B（~87 GB；可能需要 15--30 分钟，具体取决于网络速度）：
 
@@ -238,6 +252,7 @@ ollama list
 
 ## 第 2 阶段：安装并运行 NemoClaw
 
+<a id="step-4-install-nemoclaw"></a>
 ### 步骤 4. 安装 NemoClaw
 
 这个命令可以处理所有事情：安装 Node.js（如果需要）、安装 OpenShell、克隆最新稳定的 NemoClaw 版本、构建 CLI 以及运行板载向导来创建沙箱。
@@ -250,7 +265,7 @@ curl -fsSL https://www.nvidia.com/nemoclaw.sh | bash
 
 1. **沙箱名称** -- 选择一个名称（例如 `my-assistant`）。名称必须是小写字母数字，仅包含连字符。
 2. **推理提供程序** - 选择**本地 Ollama**（选项 7）。
-3. **型号** - 选择**nemotron-3-super:120b**（选项 1）。
+3. **模型** - 选择**nemotron-3-super:120b**（选项 1）。
 4. **策略预设** - 出现提示时接受建议的预设（点击 **Y**）。
 
 完成后您将看到如下输出：
@@ -274,6 +289,7 @@ Logs:        nemoclaw my-assistant logs --follow
 > [！笔记]
 > 如果安装后未找到 `nemoclaw`，请运行 `source ~/.bashrc` 重新加载 shell 路径。
 
+<a id="step-5-connect-to-the-sandbox-and-verify-inference"></a>
 ### 步骤 5. 连接到沙箱并验证推理
 
 连接到沙箱：
@@ -292,6 +308,7 @@ curl -sf https://inference.local/v1/models
 
 预期：JSON 列表 `nemotron-3-super:120b`。
 
+<a id="step-6-talk-to-the-agent-cli"></a>
 ### 步骤 6. 与智能体交谈 (CLI)
 
 仍在沙箱内，发送测试消息：
@@ -302,6 +319,7 @@ openclaw agent --agent main --local -m "hello" --session-id test
 
 智能体将使用 Nemotron 3 Super 进行响应。对于本地运行的 120B 参数模型，首次响应可能需要 30--90 秒。
 
+<a id="step-7-interactive-tui"></a>
 ### 步骤 7. 交互式 TUI
 
 启动交互式聊天会话的终端 UI：
@@ -312,6 +330,7 @@ openclaw tui
 
 按 **Ctrl+C** 退出 TUI。
 
+<a id="step-8-exit-the-sandbox-and-access-the-web-ui"></a>
 ### 步骤8.退出沙箱并访问Web UI
 
 退出沙箱返回主机：
@@ -364,10 +383,12 @@ http://127.0.0.1:18789/#token=<long-token-here>
 > [！笔记]
 > 如果您已在 NemoClaw 入门向导（步骤 5/8）期间配置了 Telegram，则可以跳过此阶段。这些步骤包括在初始设置后添加 Telegram。
 
+<a id="step-9-create-a-telegram-bot"></a>
 ### 第 9 步：创建 Telegram 机器人
 
 打开 Telegram，找到 [@BotFather](https://t.me/BotFather)，发送 `/newbot`，然后按照提示操作。复制它为您提供的机器人令牌。
 
+<a id="step-10-configure-and-start-the-telegram-bridge"></a>
 ### 步骤 10. 配置并启动 Telegram 桥
 
 确保您位于 **主机**（不在沙箱内）。如果您位于沙箱内，请先运行 `exit`。
@@ -408,19 +429,20 @@ nemoclaw status
 
 > [！笔记]
 > 如果桥未出现在 `nemoclaw status` 中，请确保在运行 `nemoclaw start` 的同一 shell 会话中导出 `TELEGRAM_BOT_TOKEN`。您还可以尝试停止并重新启动：
-> ````重击
+> ````bash
 > 尼莫爪停止
 > 导出 TELEGRAM_BOT_TOKEN=<your-bot-token>
 > 尼莫爪开始
 > ````
 
 > [！笔记]
-> 有关限制哪些 Telegram 聊天可以与智能体交互的详细信息，请参阅 [NemoClaw Telegram bridge documentation](https://docs.nvidia.com/nemoclaw/latest/deployment/set-up-telegram-bridge.html)。
+> 有关限制哪些 Telegram 聊天可以与智能体交互的详细信息，请参阅 [NemoClaw Telegram bridge 文档](https://docs.nvidia.com/nemoclaw/latest/deployment/set-up-telegram-bridge.html)。
 
 ---
 
 ## 第 4 阶段：清理和卸载
 
+<a id="step-11-stop-services"></a>
 ### 步骤11.停止服务
 
 停止任何正在运行的辅助服务（Telegram 桥、cloudflared 隧道）：
@@ -436,6 +458,7 @@ openshell forward list          # find active forwards
 openshell forward stop 18789    # stop the dashboard forward
 ```
 
+<a id="step-12-uninstall-nemoclaw"></a>
 ### 步骤12.卸载NemoClaw
 
 从克隆的源目录运行卸载程序。它会删除所有沙箱、OpenShell 网关、Docker 容器/映像/卷、CLI 和所有状态文件。 Docker、Node.js、npm 和 Ollama 均被保留。
@@ -486,8 +509,8 @@ cd ~/.nemoclaw/source
 | `cd ~/.nemoclaw/source && ./uninstall.sh` | 删除 NemoClaw（保留 Docker、Node.js、Ollama） |
 | `cd ~/.nemoclaw/source && ./uninstall.sh --delete-models` | 删除 NemoClaw 和 Ollama 模型 |
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|-------|-----|
 | 安装后`nemoclaw: command not found` | Shell 路径未更新 | 运行 `source ~/.bashrc` （或 zsh 的 `source ~/.zshrc` ），或打开一个新的终端窗口。 |
@@ -497,10 +520,10 @@ cd ~/.nemoclaw/source
 | 网关失败并出现 cgroup /“无法启动 ContainerManager”错误 | 未为 DGX Spark 上的主机 cgroup 命名空间配置 Docker | 运行 cgroup 修复：`sudo python3 -c "import json, os; path='/etc/docker/daemon.json'; d=json.load(open(path)) if os.path.exists(path) else {}; d['default-cgroupns-mode']='host'; json.dump(d, open(path,'w'), indent=2)"` 然后是 `sudo systemctl restart docker`。或者，运行 `sudo nemoclaw setup-spark` 来自动应用此修复。 |
 | 网关失败并显示“端口 8080 由容器占用...” | 另一个 OpenShell 网关或容器正在使用端口 8080 | 停止冲突的容器：`openshell gateway destroy -g <old-gateway-name>` 或 `docker stop <container-name> && docker rm <container-name>`，然后重试 `nemoclaw onboard`。 |
 | 沙箱创建失败 | 过时的网关状态或 DNS 未传播 | 运行 `openshell gateway destroy && openshell gateway start`，然后重新运行安装程序或 `nemoclaw onboard`。 |
-| CoreDNS 崩溃循环 | 某些 DGX Spark 配置的已知问题 | 从 NemoClaw 存储库目录运行 `sudo ./scripts/fix-coredns.sh`。 |
+| CoreDNS 崩溃循环 | 某些 DGX Spark 配置的已知问题 | 从 NemoClaw 仓库目录运行 `sudo ./scripts/fix-coredns.sh`。 |
 | 板载期间“未检测到 GPU” | DGX Spark GB10 以不同方式报告统一内存 | 预计在 DGX Spark 上。向导仍然工作并使用 Ollama 进行推理。 |
 | 推理超时或挂起 | Ollama 未运行或无法访问 | 检查奥拉玛：`curl http://localhost:11434`。如果未运行：`ollama serve &`。如果正在运行但无法从沙箱访问，请确保将 Ollama 配置为侦听 `0.0.0.0`（请参阅说明中的步骤 2）。 |
-| 智能体没有响应或速度非常慢 | 120B型号本地运行正常 | Nemotron 3 Super 120B 每次响应可能需要 30--90 秒。验证推理路线：`nemoclaw my-assistant status`。 |
+| 智能体没有响应或速度非常慢 | 120B模型本地运行正常 | Nemotron 3 Super 120B 每次响应可能需要 30--90 秒。验证推理路线：`nemoclaw my-assistant status`。 |
 | 端口 18789 已被使用 | 另一个进程绑定到该端口 | `lsof -i :18789` 然后 `kill <PID>`。如果需要，`kill -9 <PID>` 强制终止。 |
 | Web UI 端口转发失败或仪表板无法访问 | 端口转发未激活 | `openshell forward stop 18789 my-assistant` 然后 `openshell forward start 18789 my-assistant --background`。 |
 | Web UI 显示 `origin not allowed` | 通过 `localhost` 而不是 `127.0.0.1` 访问 | 在浏览器中使用 `http://127.0.0.1:18789/#token=...`。网关来源检查完全需要 `127.0.0.1`。 |
@@ -515,4 +538,4 @@ cd ~/.nemoclaw/source
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 ```
 
-有关最新的已知问题，请查看 [DGX Spark User Guide](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。
+有关最新的已知问题，请查看 [DGX Spark 用户指南](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。

@@ -174,14 +174,13 @@ sh launch_Comfy UI.sh
 
 <a id="troubleshooting"></a>
 ## 故障排查
-
 | 现象 | 原因 | 解决方法 |
 |---------|--------|-----|
-| 无法访问受限仓库 URL | 某些 HuggingFace 模型具有访问限制 | 重新生成你的 [HuggingFace token](https://huggingface.co/docs/hub/en/security-tokens)；并在浏览器中申请访问该[受限模型](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
+| 无法访问受限仓库 URL | 某些 Hugging Face 模型具有访问限制 | 重新生成你的 [Hugging Face token](https://huggingface.co/docs/hub/en/security-tokens)；并在浏览器中申请访问该[受限模型](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
 
 > [！笔记]
-> DGX Spark 使用统一内存架构（UMA），可在 GPU 和 CPU 之间动态共享内存。 
-> 由于许多应用仍在逐步适配 UMA，即使看起来尚未达到 DGX Spark 的内存上限，也可能遇到内存问题。 
+> DGX Spark 使用统一内存架构（UMA），可在 GPU 和 CPU 之间动态共享内存。
+> 由于许多应用仍在逐步适配 UMA，即使看起来尚未达到 DGX Spark 的内存上限，也可能遇到内存问题。
 > 如果发生这种情况，请手动刷新 buffer cache：
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'

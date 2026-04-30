@@ -4,12 +4,13 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
@@ -27,7 +28,7 @@ LLaMA、Mistral 和 Qwen 等架构。本剧本演示了如何进行微调
 
 ## 开始之前需要了解什么
 
-- 编辑配置文件和故障排除的基本 Python 知识
+- 编辑配置文件和故障排查的基本 Python 知识
 - 用于运行 shell 命令和管理环境的命令行用法
 - 熟悉 PyTorch 和 Hugging Face Transformers 生态系统
 - GPU 环境设置，包括 CUDA/cuDNN 安装和 VRAM 管理
@@ -51,11 +52,11 @@ LLaMA、Mistral 和 Qwen 等架构。本剧本演示了如何进行微调
 
 ## 附属文件
 
-- 官方 LLaMA Factory 存储库：https://github.com/hiyouga/LLaMA-Factory
+- 官方 LLaMA Factory 仓库：https://github.com/hiyouga/LLaMA-Factory
 
 - 带有 CUDA 13 的 PyTorch：通过 `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130` 安装
 
-- 训练配置示例：`examples/train_lora/qwen3_lora_sft.yaml`（来自存储库）
+- 训练配置示例：`examples/train_lora/qwen3_lora_sft.yaml`（来自仓库）
 
 - 文档：https://llamafactory.readthedocs.io/en/latest/getting_started/data_preparation.html
 
@@ -67,8 +68,8 @@ LLaMA、Mistral 和 Qwen 等架构。本剧本演示了如何进行微调
 * **最后更新：** 2026 年 2 月 18 日
   * 使用 PyTorch CUDA 13 更新为基于 venv 的设置（无 Docker）。 Qwen3 LoRA 微调工作流程。
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤 1. 验证系统先决条件
 
 检查您的 NVIDIA Spark 系统是否已安装且可访问所需的组件。
@@ -105,9 +106,9 @@ pip3 install torch torchvision torchaudio --index-url https://download.pytorch.o
 python -c "import torch; print(f'PyTorch: {torch.__version__}, CUDA: {torch.cuda.is_available()}')"
 ```
 
-## 步骤 5. 克隆 LLaMA Factory 存储库
+## 步骤 5. 克隆 LLaMA Factory 仓库
 
-从官方存储库下载 LLaMA Factory 源代码。
+从官方仓库下载 LLaMA Factory 源代码。
 
 ```bash
 git clone --depth 1 https://github.com/hiyouga/LLaMA-Factory.git
@@ -154,7 +155,7 @@ llamafactory-cli train examples/train_lora/qwen3_lora_sft.yaml
 Figure saved at: saves/qwen3-4b/lora/sft/training_loss.png
 ```
 
-## 步骤 9. 验证培训完成情况
+## 步骤 9. 验证训练完成情况
 
 验证训练是否成功完成并保存了检查点。
 
@@ -189,7 +190,7 @@ llamafactory-cli export examples/merge_lora/qwen3_lora_sft.yaml
 > [！警告]
 > 这将删除所有训练进度和检查点。
 
-要删除虚拟环境和克隆存储库：
+要删除虚拟环境和克隆仓库：
 
 ```bash
 deactivate
@@ -198,18 +199,18 @@ rm -rf LLaMA-Factory/
 rm -rf factoryEnv/
 ```
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|--------|-----|
 | 训练期间 CUDA 内存不足 | 批量大小对于 GPU VRAM 来说太大 | 减少 `per_device_train_batch_size` 或增加 `gradient_accumulation_steps` |
-| 无法访问 URL 的门禁存储库 | 某些 HuggingFace 模型的访问受到限制 | 重新生成你的 [HuggingFace token](https://huggingface.co/docs/hub/en/security-tokens);并请求在您的网络浏览器上访问 [gated model](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
+| 无法访问 URL 的门禁仓库 | 某些 Hugging Face 模型的访问受到限制 | 重新生成你的 [Hugging Face token](https://huggingface.co/docs/hub/en/security-tokens);并请求在您的网络浏览器上访问 [gated model](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
 | 模型下载失败或缓慢 | 网络连接或 Hugging Face Hub 问题 | 检查互联网连接，尝试使用 `HF_HUB_OFFLINE=1` 来缓存模型 |
 | 训练损失没有减少 | 学习率过高/过低或数据不足 | 调整 `learning_rate` 参数或检查数据集质量 |
 
 > [！笔记]
-> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。 
-> 由于许多应用程序仍在更新以利用 UMA，因此即使在 
+> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。
+> 由于许多应用程序仍在更新以利用 UMA，因此即使在
 > DGX Spark 的内存容量。如果发生这种情况，请使用以下命令手动刷新缓冲区缓存：
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'

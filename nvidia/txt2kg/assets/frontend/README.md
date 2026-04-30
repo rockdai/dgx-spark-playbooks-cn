@@ -31,7 +31,7 @@
 - **Tailwind CSS**：实用优先的样式
 - **Three.js**：WebGL/WebGPU 3D 图形可视化
 - **D3.js**：数据驱动的可视化
-- **LangChain**：法学硕士编排和链接
+- **LangChain**：LLM编排和链接
 
 ## 发展
 
@@ -81,9 +81,9 @@ npm start
 
 ## 特征
 
-- **知识图谱提取**：使用法学硕士从文本中提取三元组
+- **知识图谱提取**：使用LLM从文本中提取三元组
 - **图形可视化**：使用 Three.js WebGPU 进行交互式 3D 可视化
 - **RAG 查询**：通过检索增强生成来查询知识图
 - **多个 LLM 提供商**：支持 Ollama、vLLM 和 NVIDIA API
 - **GPU 加速渲染**：针对大型图形的可选 PyGraphistry 集成
-- **矢量搜索**：用于语义搜索的 Qdrant 集成 
+- **矢量搜索**：用于语义搜索的 Qdrant 集成

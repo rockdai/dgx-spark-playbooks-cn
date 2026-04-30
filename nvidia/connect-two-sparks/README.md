@@ -92,7 +92,7 @@ rocep1s0f0 port 1 ==> enp1s0f0np0 (Down)
 rocep1s0f1 port 1 ==> enp1s0f1np1 (Up)
 ```
 
-> [!NOTE] 
+> [!NOTE]
 > 如果所有接口都没有显示为 'Up'，请检查 QSFP 线缆连接，重启系统后再试。
 > 哪个接口显示为 'Up' 取决于你使用哪一个端口连接两台节点。每个物理端口有两个名称，例如 enp1s0f1np1 和 enP2p1s0f1np1 指的是同一个物理端口。请忽略 enP2p1s0f0np0 和 enP2p1s0f1np1，只使用 enp1s0f0np0 和 enp1s0f1np1。
 
@@ -100,7 +100,7 @@ rocep1s0f1 port 1 ==> enp1s0f1np1 (Up)
 
 请选择一种方式来配置网络接口。选项 1 和选项 2 互斥。
 
-> [!NOTE] 
+> [!NOTE]
 > 只使用一根 QSFP 线缆也可以达到满带宽。
 > 当连接两根 QSFP 线缆时，必须为四个接口都分配 IP 地址，才能获得满带宽。
 > 下方的选项 1 仅适用于连接了 1 根 QSFP 线缆的情况。
@@ -317,7 +317,6 @@ sudo ip addr del 192.168.100.11/24 dev enp1s0f0np0  # Adjust the interface name 
 
 <a id="troubleshooting"></a>
 ## 故障排查
-
 | 现象 | 原因 | 解决方法 |
 |---------|-------|-----|
 | 出现 "Network unreachable" 错误 | 网络接口未配置 | 检查 netplan 配置并执行 `sudo netplan apply` |

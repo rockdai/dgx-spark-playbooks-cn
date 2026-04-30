@@ -5,12 +5,13 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
@@ -40,7 +41,7 @@
 
 - 配备 GB10 GPU 的 NVIDIA DGX Spark
 - 为 F16 检查点提供足够的统一内存（仅权重约为 **~62GB**；如果包含 KV 缓存和运行时开销，则更多）
-- 至少 **~70GB** 可用磁盘用于 F16 下载和构建工件（如果您需要更少的磁盘和 VRAM，请使用同一存储库中较小的数量）
+- 至少 **~70GB** 可用磁盘用于 F16 下载和构建工件（如果您需要更少的磁盘和 VRAM，请使用同一仓库中较小的数量）
 
 **软件要求**
 
@@ -52,9 +53,9 @@
 
 ## 模型支持矩阵
 
-Spark 上的 llama.cpp 支持以下模型。所有列出的型号均可供使用：
+Spark 上的 llama.cpp 支持以下模型。所有列出的模型均可供使用：
 
-| 模型 | 支持状态 | 高频手柄 |
+| 模型 | 支持状态 | 模型标识 |
 |-------|----------------|-----------|
 | **Gemma 4 31B IT** | ✅ | `ggml-org/gemma-4-31B-it-GGUF` |
 | **Gemma 4 26B A4B IT** | ✅ | `ggml-org/gemma-4-26B-A4B-it-GGUF` |
@@ -64,14 +65,14 @@ Spark 上的 llama.cpp 支持以下模型。所有列出的型号均可供使用
 
 ## 时间与风险
 
-* **预计时间：** 大约 30 分钟，加上下载 ~62GB 示例 
+* **预计时间：** 大约 30 分钟，加上下载 ~62GB 示例
 * **风险级别：** 低 — 构建是您的克隆本地的；以下步骤无需进行系统范围内的安装
 * **回滚：**删除`llama.cpp`克隆以及`~/models/`下的模型目录以回收磁盘空间
 * **最后更新：** 2026 年 4 月 2 日
   * 首次出版
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤 1. 验证先决条件
 
 本演练使用 **Gemma 4 31B IT** (`gemma-4-31B-it-f16.gguf`) 作为示例检查点。您可以通过在后续步骤中更改 `hf download` 文件名和 `--model` 路径来替换 [`ggml-org/gemma-4-31B-it-GGUF`](https://huggingface.co/ggml-org/gemma-4-31B-it-GGUF) 中的另一个 GGUF（例如 `Q4_K_M` 或 `Q8_0`）。
@@ -100,7 +101,7 @@ pip install -U "huggingface_hub[cli]"
 hf version
 ```
 
-## 步骤 2. 克隆 llama.cpp 存储库
+## 步骤 2. 克隆 llama.cpp 仓库
 
 克隆上游 llama.cpp — 您正在构建的框架：
 
@@ -121,7 +122,7 @@ make -j8
 
 构建通常需要 5-10 分钟左右。完成后，`llama-server` 等二进制文件将出现在 `build/bin/` 下。
 
-## 步骤 4. 下载 Gemma 4 31B IT GGUF（支持的型号示例）
+## 步骤 4. 下载 Gemma 4 31B IT GGUF（支持的模型示例）
 
 llama.cpp 以 **GGUF** 格式加载模型。 **gemma-4-31B-it** 可以从 Hugging Face 获得 GGUF 版本；该剧本使用 F16 变体，可在 GB10 级硬件上平衡质量和内存。
 
@@ -243,19 +244,19 @@ deactivate
 ## 步骤 9. 后续步骤
 
 1. **上下文长度：** 增加 `--ctx-size` 以获得更长的聊天时间（监视内存；仅当构建、模型和硬件允许时才可以使用 1M 令牌类上下文）。
-2. **其他型号：** 将 `--model` 指向任何兼容的 GGUF； llama.cpp 服务器 API 保持不变。
+2. **其他模型：** 将 `--model` 指向任何兼容的 GGUF； llama.cpp 服务器 API 保持不变。
 3. **集成：** 使用 OpenAI 客户端模式在 `http://<spark-host>:30000/v1` 点 Open WebUI、Continue.dev 或自定义客户端。
 
 服务器实现了 llama.cpp 构建启用的常见 OpenAI 风格聊天功能（包括支持的流和工具相关流程）。
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|-------|-----|
 | `cmake` 失败并显示“未找到 CUDA” | CUDA 工具包不在 PATH 中 | 运行 `export PATH=/usr/local/cuda/bin:$PATH` 并从干净的构建目录重新运行 CMake |
 | 构建错误提到错误的 GPU 架构 | CMake `CMAKE_CUDA_ARCHITECTURES` 与 GB10 不匹配 | 按照说明对 DGX Spark GB10 使用 `-DCMAKE_CUDA_ARCHITECTURES="121"` |
-| GGUF 下载失败或停止 | 网络或拥抱面部可用性 | 重新运行`hf download`；它恢复部分文件 |
-| 启动 `llama-server` 时出现“CUDA 内存不足” | 模型对于当前上下文或 VRAM 来说太大 | 降低 `--ctx-size` （例如 4096）或使用同一存储库中较小的量化 |
+| GGUF 下载失败或停止 | 网络或Hugging Face可用性 | 重新运行`hf download`；它恢复部分文件 |
+| 启动 `llama-server` 时出现“CUDA 内存不足” | 模型对于当前上下文或 VRAM 来说太大 | 降低 `--ctx-size` （例如 4096）或使用同一仓库中较小的量化 |
 | 服务器运行但延迟很高 | 不在 GPU 上的层 | 确认 `--n-gpu-layers` 对于您的模型来说足够高；在请求期间检查 `nvidia-smi` |
 | 端口 30000 上的 `curl: (7) Failed to connect` | 还没有侦听器、主机错误或崩溃 | 等待`server is listening`；在与 `llama-server`（或 Spark 的 IP）相同的主机上运行 `curl`；运行 `ss -tln` 并确认 `:30000`；读取服务器 stderr 是否存在 OOM 或错误的 `--model` 路径 |
 | 聊天 API 错误或空回复 | `--model` 路径错误或 GGUF 不兼容 | 验证 `.gguf` 文件的路径；如果 GGUF 需要更新的格式，请更新 llama.cpp |

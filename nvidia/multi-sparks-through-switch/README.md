@@ -4,17 +4,18 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Run on Four Sparks](#run-on-four-sparks)
-  - [Step 3.1. Verify negotiated Link speed](#step-31-verify-negotiated-link-speed)
-  - [4.1 Script for Cluster networking configuration](#41-script-for-cluster-networking-configuration)
-  - [4.2 Manual Cluster networking configuration](#42-manual-cluster-networking-configuration)
-  - [Option 1: Automatically configure SSH](#option-1-automatically-configure-ssh)
-  - [Option 2: Manually discover and configure SSH](#option-2-manually-discover-and-configure-ssh)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [在四台 Spark 上运行](#run-on-four-sparks)
+  - [步骤 3.1。验证协商的链接速度](#step-31-verify-negotiated-link-speed)
+  - [4.1 集群网络配置脚本](#41-script-for-cluster-networking-configuration)
+  - [4.2 手动集群网络配置](#42-manual-cluster-networking-configuration)
+  - [选项 1：在交换机上配置 DHCP 服务器](#option-1-automatically-configure-ssh)
+  - [选项 2：自动链接本地 IP 分配](#option-2-manually-discover-and-configure-ssh)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
@@ -40,7 +41,7 @@
 - 四个 DGX Spark 系统（这些说明适用于与交换机连接的任意数量的 DGX Spark 设备）
 - 具有至少 4 个 QSFP56-DD 端口（每个端口至少 200Gbps）的 QSFP 交换机
 - QSFP 电缆用于从交换机到设备的 200Gbps 连接。使用 [recommended cable](https://marketplace.nvidia.com/en-us/enterprise/personal-ai-supercomputers/qsfp-cable-0-4m-for-dgx-spark/) 或类似的。
-  - 每个火花一根电缆
+  - 每台 Spark一根电缆
   - 如果交换机有 400Gbps 端口，那么您还可以使用分支电缆将它们分成两个 200Gbps 端口
 - 所有系统均可使用 SSH 访问
 - 所有系统上的 root 或 sudo 访问权限：`sudo whoami`
@@ -49,7 +50,7 @@
 
 ## 附属文件
 
-此剧本所需的所有文件都可以在 [here on GitHub](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/multi-sparks-through-switch/) 中找到
+此剧本所需的所有文件都可以在 [GitHub](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/multi-sparks-through-switch/) 中找到
 
 - 用于自动节点发现和 SSH 密钥分发的 [**discover-sparks.sh**](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/connect-two-sparks/assets/discover-sparks) 脚本
 - [**Cluster setup script**](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/multi-sparks-through-switch/assets/spark_cluster_setup) 用于自动网络配置、验证和运行 NCCL 健全性测试
@@ -65,7 +66,8 @@
 - **最后更新：** 2026 年 3 月 19 日
   * 首次发表
 
-## 靠四个火花奔跑
+<a id="run-on-four-sparks"></a>
+## 在四台 Spark 上运行
 
 ## 步骤 1. 确保所有四个系统上的用户名相同
 
@@ -96,7 +98,7 @@ su - nvidia
 
 ## 步骤 3. 物理硬件连接
 
-使用每个 Spark 系统上的一个 CX7 端口连接 DGX Spark 系统和交换机（QSFP56-DD/QSFP56 端口）之间的 QSFP 电缆。建议在所有 Spark 系统上使用相同的 CX7 端口，以便更轻松地进行网络配置并避免 NCCL 测试失败。在此剧本中，使用第二个端口（距离以太网端口较远的一个）。这应该建立高速节点间通信所需的 200Gbps 连接。您将在所有四个火花上看到如下所示的输出。在此示例中，显示为“Up”的接口是 **enp1s0f1np1** 和 **enP2p1s0f1np1**（每个物理端口有两个逻辑接口）。
+使用每个 Spark 系统上的一个 CX7 端口连接 DGX Spark 系统和交换机（QSFP56-DD/QSFP56 端口）之间的 QSFP 电缆。建议在所有 Spark 系统上使用相同的 CX7 端口，以便更轻松地进行网络配置并避免 NCCL 测试失败。在此剧本中，使用第二个端口（距离以太网端口较远的一个）。这应该建立高速节点间通信所需的 200Gbps 连接。您将在所有四台 Spark上看到如下所示的输出。在此示例中，显示为“Up”的接口是 **enp1s0f1np1** 和 **enP2p1s0f1np1**（每个物理端口有两个逻辑接口）。
 
 输出示例：
 ```bash
@@ -112,6 +114,7 @@ roceP2p1s0f1 port 1 ==> enP2p1s0f1np1 (Up)
 > 如果没有接口显示为“Up”，请检查 QSFP 电缆连接，重新启动系统并重试。
 > 显示为“Up”的接口取决于您用于将节点连接到交换机的端口。每个物理端口有两个逻辑接口，例如，端口 1 有两个接口 - enp1s0f1np1 和 enP2p1s0f1np1。请忽略 enp1s0f0np0 和 enP2p1s0f0np0，仅使用 enp1s0f1np1 和 enP2p1s0f1np1。
 
+<a id="step-31-verify-negotiated-link-speed"></a>
 ### 步骤 3.1。验证协商的链接速度
 
 自动协商的链路速度可能不会默认为 200Gbps。要进行确认，请在所有 Spark 上运行以下命令并检查速度是否显示为 200000Mb/s。如果显示小于该值，则需要在交换机端口配置中手动将链路速度设置为 200Gbps，并且应禁用自动协商。请参阅交换机的手册/文档以禁用自动协商并将链路速度手动设置为 200Gbps（例如 200G-baseCR4）
@@ -154,9 +157,10 @@ nvidia@dxg-spark-1:~$ sudo ethtool enP2p1s0f1np1 | grep Speed
 
 完成创建/添加桥接端口后，您应该准备好在 DGX Spark 端配置网络。
 
+<a id="41-script-for-cluster-networking-configuration"></a>
 ### 4.1 集群网络配置脚本
 
-我们创建了一个脚本 [here on GitHub](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/multi-sparks-through-switch/assets/spark_cluster_setup) ，它可以自动执行以下操作：
+我们创建了一个脚本 [GitHub](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/multi-sparks-through-switch/assets/spark_cluster_setup) ，它可以自动执行以下操作：
 1. 所有 DGX Spark 的接口网络 IP 配置
 2. 在 DGX Sparks 之间设置无密码身份验证
 3. 验证多节点通信
@@ -177,6 +181,7 @@ cd dgx-spark-playbooks/nvidia/multi-sparks-through-switch/assets/spark_cluster_s
 ## Check the README.md in the script directory for steps to run the script and configure the cluster networking with "--run-setup" argument
 ```
 
+<a id="42-manual-cluster-networking-configuration"></a>
 ### 4.2 手动集群网络配置
 
 在这种情况下，您可以选择其中一个选项来将 IP 分配给 CX7 逻辑接口。选项 1、2 和 3 是互斥的。
@@ -184,6 +189,7 @@ cd dgx-spark-playbooks/nvidia/multi-sparks-through-switch/assets/spark_cluster_s
 2. 链接本地 IP 寻址（所有节点的网络规划都相同）
 3. 手动 IP 寻址（每个节点上的网络规划都不同，但提供更多控制和确定性 IP）
 
+<a id="option-1-automatically-configure-ssh"></a>
 #### 选项 1：在交换机上配置 DHCP 服务器
 
 1. 在交换机上配置 DHCP 服务器，其子网足够大，以便为所有 Spark 分配 IP。 /24 子网应该可以很好地进行配置和任何未来的扩展。
@@ -216,6 +222,7 @@ nvidia@dgx-spark-1:~$ ip addr show enp1s0f1np1 | grep -w inet
     inet 100.100.100.4/24 brd 100.100.100.255 scope global noprefixroute enp1s0f1np1
 ```
 
+<a id="option-2-manually-discover-and-configure-ssh"></a>
 #### 选项 2：自动链接本地 IP 分配
 
 在所有 DGX Spark 节点上使用 netplan 配置网络接口，以实现自动链路本地寻址：
@@ -445,8 +452,8 @@ sudo netplan apply
 > 2. 如果您使用交换机上的 DHCP 服务器配置为 Sparks 分配 IP，请删除该配置。
 > 3. 如果您创建了新网桥，请将端口移回默认网桥并删除新网桥。
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|-------|-----|
 | “网络无法访问”错误 | 网络接口未配置 | 验证 netplan 配置和 `sudo netplan apply` |

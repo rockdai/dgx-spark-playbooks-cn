@@ -5,7 +5,7 @@ FastAPI Python 应用程序充当聊天机器人演示的 API 后端。
 ## 概述
 
 后端处理：
-- multimodalLLM整合（本地模式）
+- 多模态 LLM 集成（本地模式）
 - RAG 的文档摄取和向量存储
 - 用于实时聊天流的 WebSocket 连接
 - 图像处理与分析
@@ -25,7 +25,7 @@ FastAPI Python 应用程序充当聊天机器人演示的 API 后端。
 
 具有异步支持的 FastAPI 应用程序，与用于 RAG 功能的矢量数据库和用于实时通信的 WebSocket 端点集成。
 
-## Docker 故障排除
+## Docker 故障排查
 
 ### 容器问题
 - **端口冲突**：确保端口 8000 未被使用

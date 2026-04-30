@@ -4,12 +4,13 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
@@ -23,7 +24,7 @@
 1. GPU 加速的数据加载和预处理
 2. QC 细胞直观地了解数据
 3. 过滤异常细胞
-4. 消除不需要的变异来源 
+4. 消除不需要的变异来源
 5. PCA 和 UMAP 数据的聚类和可视化
 6. 使用 Harmony、k 最近邻、UMAP 和 tSNE 进行批量校正和分析
 7. 通过差异表达分析和轨迹分析从数据中探索生物信息
@@ -50,13 +51,13 @@
 
 ## 附属文件
 
-所有必需的资产都可以在 [in the Single-cell RNA Sequencing repository](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/single-cell/) 中找到。在运行的剧本中，它们都可以在 `playbook` 文件夹下找到。
+所有必需的资产都可以在 [Single-cell RNA Sequencing 仓库](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/single-cell/) 中找到。在运行的剧本中，它们都可以在 `playbook` 文件夹下找到。
 
-- `scRNA_analysis_preprocessing.ipynb` - 主要剧本笔记本。  
+- `scRNA_analysis_preprocessing.ipynb` - 主要剧本笔记本。
 - `README.md` - Playbook 环境快速入门指南。  它还可以在 Jupyter Lab 的主目录中找到。  请从那里开始！
 - `/setup/start_playbook.sh` - 在 Docker 容器中开始安装 playbook 的脚本
 - `/setup/setup_playbook.sh` - 在用户进入 JupyterLab 环境之前配置 Docker 容器
-- `/setup/requirements.txt` - 用作 setup_playbook 中的命令将安装到 playbook 环境中的库列表 
+- `/setup/requirements.txt` - 用作 setup_playbook 中的命令将安装到 playbook 环境中的库列表
 
 ## 时间与风险
 * **预计时间：** 首次运行约 15 分钟
@@ -76,8 +77,8 @@
 * **最后更新：** 2026 年 1 月 2 日
   * 首次出版
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤 1. 验证您的环境
 
 我们首先验证您是否有可用的 GPU、git 和 Docker。  打开终端，然后复制并粘贴以下命令：
@@ -110,10 +111,10 @@ start_playbook.sh 将：
 使用剧本时请保持终端窗口打开。
 
 您可以通过两种方式访问​​ JupyterLab 服务器
-1. 如果在 DGX Spark 上本地运行，则位于 `http://127.0.0.1:8888` 处。 
+1. 如果在 DGX Spark 上本地运行，则位于 `http://127.0.0.1:8888` 处。
 2. 如果通过网络使用无头 DGX Spark，请在 `http://<SPARK_IP>:8888` 处。
 
-进入 JupyterLab 后，您将看到一个包含 scRNA_analysis_preprocessing.ipynb 的目录以及文件夹 `cuDF`、`cuML`、`cuGraph` 和 `playbook`。 
+进入 JupyterLab 后，您将看到一个包含 scRNA_analysis_preprocessing.ipynb 的目录以及文件夹 `cuDF`、`cuML`、`cuGraph` 和 `playbook`。
 
 - `scRNA_analysis_preprocessing.ipynb` 是 playbook 笔记本。  您需要通过双击该文件来打开它。
 - `cuDF`、`cuML`、`cuGraph` 文件夹包含标准 RAPIDS 库示例笔记本，可帮助您继续探索。
@@ -139,7 +140,7 @@ start_playbook.sh 将：
 
 下载完所有工作后，返回到开始运行剧本的终端窗口。
 
-在终端窗口中， 
+在终端窗口中，
 1. 类型 `Ctrl + C`
 2. 快速输入 `y`，然后在提示符下点击 `Enter` 或再次点击 `Ctrl + C`
 3. Docker 容器将继续关闭
@@ -147,11 +148,11 @@ start_playbook.sh 将：
 > [!WARNING]
 > 这将删除尚未从 Docker 容器下载的所有数据。  如果浏览器窗口仍处于打开状态，则可能仍会显示缓存的文件。
 
-## 故障排除
-
-<!-- 
-故障排除模板：虽然是可选的，但此资源可以显着帮助用户解决常见问题。
-将 {} 中的所有占位符内容替换为您的实际故障排除信息。
+<a id="troubleshooting"></a>
+## 故障排查
+<!--
+故障排查模板：虽然是可选的，但此资源可以显着帮助用户解决常见问题。
+将 {} 中的所有占位符内容替换为您的实际故障排查信息。
 完成后删除这些注释块。
 
 目的：为用户可能遇到的问题提供快速解决方案。
@@ -167,16 +168,16 @@ start_playbook.sh 将：
 
 
 
-<!-- 
+<!--
 为可能与您的项目相关的一些常见已知问题保留了空间。在更改或删除之前评估潜在后果。
 -->
 
-> [!NOTE] 
-> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。 
-> 由于许多应用程序仍在更新以利用 UMA，因此即使在 
+> [!NOTE]
+> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。
+> 由于许多应用程序仍在更新以利用 UMA，因此即使在
 > DGX Spark 的内存容量。如果发生这种情况，请使用以下命令手动刷新缓冲区缓存：
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 ```
 
-有关最新的已知问题，请查看 [DGX Spark User Guide](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。
+有关最新的已知问题，请查看 [DGX Spark 用户指南](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。

@@ -4,12 +4,13 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
@@ -44,7 +45,7 @@
 - NVIDIA AI Workbench 已安装或准备安装
 - 免费 NVIDIA API 密钥：在 [NGC API Keys](https://org.ngc.nvidia.com/setup/api-keys) 生成
 - 免费 Tavily API 密钥：在 [Tavily](https://tavily.com/) 生成
-- 用于克隆存储库和访问 API 的互联网连接
+- 用于克隆仓库和访问 API 的互联网连接
 - 用于访问 Gradio 界面的 Web 浏览器
 
 ## 验证命令
@@ -61,8 +62,8 @@
 * **最后更新：** 2025 年 10 月 28 日
   * 少量文案编辑
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤 1. 安装 NVIDIA AI Workbench
 
 在 DGX Spark 系统上安装 AI Workbench 并完成初始设置向导。
@@ -82,7 +83,7 @@
 接下来，您应该确保在继续项目设置之前拥有两个必需的 API 密钥。请妥善保管这些钥匙！
 
 * Tavilly API 密钥：https://tavily.com/
-* NVIDIA API 密钥：https://org.ngc.nvidia.com/setup/api-keys 
+* NVIDIA API 密钥：https://org.ngc.nvidia.com/setup/api-keys
 * 确保此密钥具有“`Public API Endpoints`”权限
 
 保持这两个密钥可供下一步使用。
@@ -93,7 +94,7 @@
 
 在 AI Workbench 登录页面中，选择 **本地** 位置（如果尚未这样做），然后单击右上角的“克隆项目”。
 
-将此 Git 存储库 URL 粘贴到克隆对话框中：https://github.com/NVIDIA/workbench-example-agentic-rag
+将此 Git 仓库 URL 粘贴到克隆对话框中：https://github.com/NVIDIA/workbench-example-agentic-rag
 
 单击“克隆”开始克隆和构建过程。
 
@@ -124,7 +125,7 @@
 
 在聊天应用程序中，单击或键入示例查询，例如：`How do I add an integration in the CLI?`
 
-等待智能体系统处理并响应。响应虽然一般，但应该展示智能路由和评估。 
+等待智能体系统处理并响应。响应虽然一般，但应该展示智能路由和评估。
 
 ## 步骤 7. 验证项目
 
@@ -165,7 +166,7 @@
 
 ## 步骤 11. 后续步骤
 
-您还可以使用 Agentic RAG 系统探索更多高级功能和开发选项：
+您还可以使用 智能体 RAG 系统探索更多高级功能和开发选项：
 
 * 修改项目代码中的组件提示
 * 上传不同的文档来测试路由和定制
@@ -174,8 +175,8 @@
 
 考虑自定义 Gradio UI 或将智能体 RAG 组件集成到您自己的项目中。
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|-------|-----|
 | 泰维利 API 错误 | 互联网连接或 DNS 问题 | 等待并重试查询 |
@@ -184,4 +185,4 @@
 | 智能体循环超时 | 复杂查询超出时间限制 | 尝试更简单的查询或重试 |
 
 
-有关最新的已知问题，请查看 [DGX Spark User Guide](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。
+有关最新的已知问题，请查看 [DGX Spark 用户指南](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。

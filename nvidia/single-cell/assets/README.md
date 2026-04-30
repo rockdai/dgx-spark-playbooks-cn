@@ -18,12 +18,12 @@ ___
 
 ### [CLICK HERE TO BEGIN](scRNA_analysis_preprocessing.ipynb)
 
-使用 DGX Spark 可以帮助您轻松使用 [RAPIDS Open Source ecosystem](https://rapids.ai) GPU 加速基于数据科学和机器学习的工作流程，以便您可以比以往更快地从数据到信息再到见解！  
+使用 DGX Spark 可以帮助您轻松使用 [RAPIDS Open Source ecosystem](https://rapids.ai) GPU 加速基于数据科学和机器学习的工作流程，以便您可以比以往更快地从数据到信息再到见解！
 
 ![cells](assets/rsc.png)
 
 
-# <div align="left"><img src="https://rapids.ai/assets/images/rapids_logo.png" width="90px"/>  <div align="left"><img src="https://canada1.discourse-cdn.com/flex035/uploads/forum11/original/1X/dfb6d71c9b8deb73aa10aa9bc47a0f8948d5304b.png" width="90px"/> 
+# <div align="left"><img src="https://rapids.ai/assets/images/rapids_logo.png" width="90px"/>  <div align="left"><img src="https://canada1.discourse-cdn.com/flex035/uploads/forum11/original/1X/dfb6d71c9b8deb73aa10aa9bc47a0f8948d5304b.png" width="90px"/>
 <br>
 
 ___
@@ -72,11 +72,11 @@ ___
     - 轨迹分析
         - 实施扩散图以了解细胞类型的进展
 
-这些笔记本对于想要快速评估易用性以及探索 RAPIDS-单细胞结果的生物学可解释性的单细胞科学家来说非常有价值。其次，科学家会发现学习将这些方法应用于非常大的数据集的价值。该存储库对于任何想要利用 RAPIDS-singlecell 运行和评估单细胞方法的数据科学家或开发人员也广泛有用。本教程使用的数据集为 [publicly available by 10X](https://www.10xgenomics.com/datasets) 和 [CZ cellxgene](https://cellxgene.cziscience.com/)。 
+这些笔记本对于想要快速评估易用性以及探索 RAPIDS-单细胞结果的生物学可解释性的单细胞科学家来说非常有价值。其次，科学家会发现学习将这些方法应用于非常大的数据集的价值。该仓库对于任何想要利用 RAPIDS-singlecell 运行和评估单细胞方法的数据科学家或开发人员也广泛有用。本教程使用的数据集为 [publicly available by 10X](https://www.10xgenomics.com/datasets) 和 [CZ cellxgene](https://cellxgene.cziscience.com/)。
 
 如果您喜欢这款笔记本和 GPU 加速功能，请执行以下两件事：
-1. 通过 [Single Cell Analysis AI Blueprint](https://github.com/NVIDIA-AI-Blueprints/single-cell-analysis-blueprint/tree/main) 探索其余的单单元笔记本 
-1. 请[learn more about them here](https://scverse.org/about/) 和[consider joining their community](https://scverse.org/join/) 支持scverse 的努力。
+1. 通过 [Single Cell Analysis AI Blueprint](https://github.com/NVIDIA-AI-Blueprints/single-cell-analysis-blueprint/tree/main) 探索其余的单单元笔记本
+1. 请[了解更多](https://scverse.org/about/) 和[加入社区](https://scverse.org/join/) 支持scverse 社区。
 <br>
 <br>
 
@@ -86,7 +86,7 @@ ___
 ___
 <br>
 
-- **[scRNA_analysis_preprocessing.ipynb](scRNA_analysis_preprocessing.ipynb)** - 主要剧本笔记本 
+- **[scRNA_analysis_preprocessing.ipynb](scRNA_analysis_preprocessing.ipynb)** - 主要剧本笔记本
 - `START_HERE.md` - Playbook 环境快速入门指南。  它还可以在 Jupyter Lab 的主目录中找到。  请从那里开始！
 - `cuDF, cuML, and cuGraph folders` - 更多示例笔记本，可继续您的 GPU 加速数据科学之旅。
 <br>
@@ -111,6 +111,6 @@ ___
 ___
 <br>
 
-如果您对这些笔记本有任何疑问或需要支持，请在 [Single Cell Analysis AI Blueprint](https://github.com/NVIDIA-AI-Blueprints/single-cell-analysis-blueprint/tree/main) 存储库上提出问题，我们将在那里回复。
+如果您对这些笔记本有任何疑问或需要支持，请在 [Single Cell Analysis AI Blueprint](https://github.com/NVIDIA-AI-Blueprints/single-cell-analysis-blueprint/tree/main) 仓库上提出问题，我们将在那里回复。
 
 

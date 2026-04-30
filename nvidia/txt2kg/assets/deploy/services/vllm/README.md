@@ -1,4 +1,4 @@
-# 法学硕士服务
+# LLM服务
 
 该服务使用带有 FP8 量化的 vLLM 提供先进的 GPU 加速 LLM 推理，为生产工作负载提供比 Ollama 更高的吞吐量。
 
@@ -48,7 +48,7 @@ curl -X POST "http://localhost:8001/v1/chat/completions" \
 
 ## 默认配置
 
-- **型号**：`meta-llama/Llama-3.2-3B-Instruct`
+- **模型**：`meta-llama/Llama-3.2-3B-Instruct`
 - **量化**：FP8（针对计算效率进行了优化）
 - **端口**：8001
 - **API**：OpenAI 兼容端点
@@ -99,11 +99,10 @@ docker compose -f deploy/compose/docker-compose.complete.yml restart vllm
 - 支持 CUDA 的 NVIDIA GPU（推荐 Ampere 架构或更新版本）
 - CUDA驱动535或以上
 - Docker 与 NVIDIA 容器工具包
-- 默认型号至少 8GB VRAM
-- 用于门控模型的 HuggingFace 令牌（可选，缓存在 `~/.cache/huggingface` 中）
+- 默认模型至少 8GB VRAM
+- 用于门控模型的 Hugging Face 令牌（可选，缓存在 `~/.cache/huggingface` 中）
 
-## 故障排除
-
+## 故障排查
 ### 检查服务状态
 ```bash
 # View logs
@@ -124,12 +123,12 @@ docker exec vllm-service nvidia-smi
 
 ### 模型加载问题
 - 确保模型有足够的 VRAM
-- 检查 HuggingFace 缓存：`ls ~/.cache/huggingface/hub`
+- 检查 Hugging Face 缓存：`ls ~/.cache/huggingface/hub`
 - 对于门控模型，设置 HF_TOKEN 环境变量
 
-## 与奥拉马的比较
+## 与Ollama的比较
 
-| 特征 | 奥拉马 | 法学硕士 |
+| 特征 | Ollama | LLM |
 |---------|--------|------|
 | **易于使用** | ✅ 非常简单 | ⚠️更复杂 |
 | **模型管理** | ✅ 内置拉/推 | ❌ 手动下载 |

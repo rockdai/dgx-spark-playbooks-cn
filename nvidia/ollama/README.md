@@ -1,18 +1,19 @@
-# 奥拉马
+# Ollama
 
 > 安装和使用Ollama
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
-## 基本思想
+## 基本思路
 
 本手册演示了如何设置对 NVIDIA 上运行的 Ollama 服务器的远程访问
 使用 NVIDIA Sync 的自定义应用程序功能的 Spark 设备。您将在 Spark 设备上安装 Ollama，
@@ -44,7 +45,7 @@
 
 ## 时间与风险
 
-* **持续时间**：初始设置 10-15 分钟，模型下载 2-3 分钟（因模型大小而异）
+* **预计时间**：初始设置 10-15 分钟，模型下载 2-3 分钟（因模型大小而异）
 
 * **风险级别**：低 - 没有系统级更改，通过停止自定义应用程序可以轻松逆转
 
@@ -54,8 +55,8 @@
 * **最后更新：** 2025 年 10 月 12 日
   * 首次发表
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤 1. 验证 Ollama 安装状态
 
 **说明**：检查 Ollama 是否已安装在您的 NVIDIA Spark 设备上。这运行于
@@ -168,7 +169,7 @@ curl http://localhost:11434/api/chat -d '{
 **描述**：验证其他 Ollama API 功能以确保完整运行。这些命令
 在本地计算机上运行并测试不同的 API 功能。
 
-测试型号清单：
+测试模型清单：
 ```bash
 curl http://localhost:11434/api/tags
 ```
@@ -190,7 +191,7 @@ curl -N http://localhost:11434/api/chat -d '{
 1. 打开 NVIDIA Sync 并单击“Ollama Server”以停用
 
 要删除自定义应用程序：
-1. 打开 NVIDIA 同步设置 → 自定义选项卡
+1. 打开 NVIDIA Sync设置 → 自定义选项卡
 2. 选择“Ollama 服务器”并单击“删除”
 
 > [！警告]
@@ -223,12 +224,12 @@ ollama pull phi3.5:3.8b
 通过与您首选的编程语言集成，使用 Ollama API 构建应用程序
 HTTP 客户端库。
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|--------|-----|
 | 本地主机上的“连接被拒绝”：11434 | SSH 隧道未激活 | 在 NVIDIA Sync 自定义应用程序中启动 Ollama Server |
-| 模型下载因磁盘空间错误而失败 | Spark 存储空间不足 | 释放空间或选择较小的型号（例如 qwen2.5:7b） |
+| 模型下载因磁盘空间错误而失败 | Spark 存储空间不足 | 释放空间或选择较小的模型（例如 qwen2.5:7b） |
 | 安装后未找到 Ollama 命令 | 安装路径不在PATH中 | 重新启动终端会话或运行 `source ~/.bashrc` |
-| API 返回“未找到模型”错误 | 型号未拉出或名称错误 | 运行 `ollama list` 来验证可用模型 |
+| API 返回“未找到模型”错误 | 模型未拉出或名称错误 | 运行 `ollama list` 来验证可用模型 |
 | Spark 推理速度慢 | 模型对于 GPU 内存来说太大 | 尝试较小的模型或使用 `nvidia-smi` 检查 GPU 内存 |

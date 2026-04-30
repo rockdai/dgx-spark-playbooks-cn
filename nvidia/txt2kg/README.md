@@ -5,12 +5,13 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
@@ -62,11 +63,11 @@
   - 具有确定性键和 BM25 搜索的优化 ArangoDB
   - 添加了用于知识图训练的 GNN 预处理脚本
 
-## 指示
+<a id="instructions"></a>
+## 操作步骤
+## 步骤 1. 克隆仓库
 
-## 步骤 1. 克隆存储库
-
-在终端中，克隆 txt2kg 存储库并导航到项目目录。
+在终端中，克隆 txt2kg 仓库并导航到项目目录。
 
 ```bash
 git clone https://github.com/NVIDIA/dgx-spark-playbooks
@@ -95,7 +96,7 @@ cd dgx-spark-playbooks/nvidia/txt2kg/assets
 docker exec ollama-compose ollama pull <model-name>
 ```
 
-浏览 [https://ollama.com/search](https://ollama.com/search) 上的可用型号
+浏览 [https://ollama.com/search](https://ollama.com/search) 上的可用模型
 
 > [!NOTE]
 > 统一的内存架构支持运行更大的模型，例如 70B 参数，从而产生更加准确的知识三元组。
@@ -109,7 +110,7 @@ http://localhost:3001
 ```
 
 您还可以访问个人服务：
-- **ArangoDB Web 界面**：http://localhost:8529 
+- **ArangoDB Web 界面**：http://localhost:8529
 - **Ollama API**：http://localhost:11434
 
 ## 步骤5.上传文档并构建知识图谱
@@ -154,18 +155,18 @@ docker exec ollama-compose ollama rm llama3.1:8b
 - 自定义特定领域知识的三重提取提示
 - 探索高级图形查询和可视化功能
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|--------|-----|
-| 奥拉马性能问题 | DGX Spark 的次优设置 | 设置环境变量：<br>`OLLAMA_FLASH_ATTENTION=1`（启用闪存关注以获得更好的性能）<br>`OLLAMA_KEEP_ALIVE=30m`（使模型加载30分钟）<br>`OLLAMA_MAX_LOADED_MODELS=1`（避免VRAM争用）<br>`OLLAMA_KV_CACHE_TYPE=q8_0`（减少KV缓存VRAM，同时对性能影响最小） |
+| Ollama性能问题 | DGX Spark 的次优设置 | 设置环境变量：<br>`OLLAMA_FLASH_ATTENTION=1`（启用闪存关注以获得更好的性能）<br>`OLLAMA_KEEP_ALIVE=30m`（使模型加载30分钟）<br>`OLLAMA_MAX_LOADED_MODELS=1`（避免VRAM争用）<br>`OLLAMA_KV_CACHE_TYPE=q8_0`（减少KV缓存VRAM，同时对性能影响最小） |
 | VRAM 耗尽或内存压力（例如在 Ollama 模型之间切换时） | Linux 缓冲区高速缓存消耗 GPU 内存 | 刷新缓冲区高速缓存：`sudo sync; sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'` |
 | 慢三重萃取 | 大模型或大上下文窗口 | 减少文档块大小或使用更快的模型 |
 | ArangoDB 连接被拒绝 | 服务未完全启动 | start.sh后等待30秒，用`docker ps`验证 |
 
 > [!NOTE]
-> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。 
-> 由于许多应用程序仍在更新以利用 UMA，因此即使在 
+> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。
+> 由于许多应用程序仍在更新以利用 UMA，因此即使在
 > DGX Spark 的内存容量。如果发生这种情况，请使用以下命令手动刷新缓冲区缓存：
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'

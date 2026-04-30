@@ -78,7 +78,7 @@ GitHub 仓库中包含两个 notebook。
   ```
 如果你是远程访问 DGX-Spark，请务必转发所需端口，以便在本地浏览器中访问 notebook。请使用下面的端口转发命令：
 ```bash
-  ssh -N -L YYYY:localhost:XXXX username@remote_host 
+  ssh -N -L YYYY:localhost:XXXX username@remote_host
 ```
 - `YYYY`：你希望在本地使用的端口（例如 8888）
 - `XXXX`：你在远程机器上启动 Jupyter Notebook 时指定的端口（例如 8888）

@@ -1,5 +1,6 @@
-# 英伟达txt2kg
+# NVIDIA txt2kg
 
+<a id="overview"></a>
 ## 概述
 
 本手册可作为知识图谱提取和检索增强生成 (RAG) 查询的参考解决方案。这个 txt2kg 剧本从文本中提取知识三元组，并构建用于可视化和查询的知识图，与传统的 RAG 方法相比，创建了更加结构化的信息检索形式。通过利用图形数据库和实体关系，本手册提供了上下文更丰富的答案，可以更好地表示数据中的复杂关系。
@@ -8,19 +9,20 @@
 <summary>📋 目录</summary>
 
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Software Components](#software-components)
-- [Technical Diagram](#technical-diagram)
-- [Minimum System Requirements](#minimum-system-requirements)
-- [Deployment Guide](#deployment-guide)
-- [Available Customizations](#available-customizations)
-- [License](#license)
+- [概述](#overview)
+- [主要特点](#key-features)
+- [软件组件](#software-components)
+- [技术图解](#technical-diagram)
+- [软件要求](#minimum-system-requirements)
+- [部署指南](#deployment-guide)
+- [可用自定义项](#available-customizations)
+- [许可证](#license)
 
 </details>
 
 默认情况下，本剧本利用 **Ollama** 进行本地 LLM 推理，提供完全独立的解决方案，完全在您自己的硬件上运行。您可以选择使用 **vLLM** 在 DGX Spark/GB300 上进行 GPU 加速推理，或者使用 [NVIDIA API Catalog](https://build.nvidia.com) 中提供的 NVIDIA 托管模型来实现高级功能。
 
+<a id="key-features"></a>
 ## 主要特点
 
 ![Screenshot](./frontend/public/txt2kg.png)
@@ -36,14 +38,15 @@
 - 使用 Qdrant 进行可选向量搜索以获得语义相似性
 - 用于上下文答案的可选基于图形的 RAG
 
+<a id="software-components"></a>
 ## 软件组件
 
 ### 核心组件（默认）
 
-* **法学硕士推理**
+* **LLM 推理**
   * **Ollama**：具有 GPU 加速的本地 LLM 推理
-    * 默认型号：`llama3.1:8b`
-    * 支持任何 Ollama 兼容型号
+    * 默认模型：`llama3.1:8b`
+    * 支持任何 Ollama 兼容模型
 * **知识图数据库**
   * **ArangoDB**：用于存储知识三元组（实体和关系）的图形数据库
     * 端口 8529 上的 Web 界面
@@ -57,7 +60,7 @@
 
 * **vLLM 堆栈**（带有 `--vllm` 标志）
   * **vLLM**：针对 DGX Spark/GB300 优化的 GPU 加速 LLM 推理
-    * 默认型号：`nvidia/Llama-3_3-Nemotron-Super-49B-v1_5-FP8`
+    * 默认模型：`nvidia/Llama-3_3-Nemotron-Super-49B-v1_5-FP8`
   * **Neo4j**：替代图数据库
 * **矢量数据库和嵌入**（带有 `--vector-search` 标志）
   * **SentenceTransformer**：本地嵌入生成（模型：`all-MiniLM-L6-v2`）
@@ -65,6 +68,7 @@
 * **云模型**（单独配置）
   * **NVIDIA API**：通过 NVIDIA API Catalog 的基于云的模型
 
+<a id="technical-diagram"></a>
 ## 技术图解
 
 ### 默认架构（最小设置）
@@ -91,9 +95,9 @@
 ### Ollama 功能（默认）
 - **完全本地推理**：无需云依赖项或 API 密钥
 - **GPU 加速**：NVIDIA GPU 的自动 CUDA 支持
-- **多型号支持**：使用任何 Ollama 兼容型号
-- **优化推理**：Flash 注意力、KV 缓存优化和量化
-- **轻松的模型管理**：使用简单的命令拉动和切换模型
+- **多模型支持**：使用任何 Ollama 兼容模型
+- **优化推理**：Flash Attention、KV 缓存优化和量化
+- **轻松的模型管理**：使用简单的命令拉取和切换模型
 - **隐私第一**：所有数据处理都发生在您的硬件上
 
 ### vLLM 替代方案（通过 `--vllm` 标志）
@@ -102,17 +106,19 @@
 - **大上下文支持**：高达 32K 令牌上下文长度
 - **连续批处理**：多个请求的高吞吐量
 
-### 默认 Olama 配置
-- 型号：`llama3.1:8b`
+### 默认 Ollama 配置
+- 模型：`llama3.1:8b`
 - GPU 内存比例：0.9（可用 VRAM 的 90%）
-- 启用闪光注意
+- 启用 Flash Attention
 - Q8_0 KV 缓存可提高内存效率
 
+<a id="minimum-system-requirements"></a>
 ## 软件要求
 
 - CUDA 12.0+
 - Docker 与 NVIDIA 容器工具包
 
+<a id="deployment-guide"></a>
 ## 部署指南
 
 ### 环境变量
@@ -135,7 +141,7 @@ NVIDIA_API_KEY=your-nvidia-api-key
 
 ### 快速入门
 
-1. **克隆存储库：**
+1. **克隆仓库：**
 ```bash
 git clone <repository-url>
 cd txt2kg
@@ -191,7 +197,8 @@ docker logs vllm-service -f
 - **Qdrant**：http://localhost:6333
 - **句子转换器**：http://localhost:8000
 
-## 可用的定制
+<a id="available-customizations"></a>
+## 可用自定义项
 
 - **切换 LLM 后端**：对 vLLM 使用 `--vllm` 标志，对 Ollama 使用默认标志
 - **添加矢量搜索**：使用 `--vector-search` 标志进行 Qdrant + 嵌入
@@ -200,7 +207,8 @@ docker logs vllm-service -f
 - **添加特定领域的知识源**：集成外部本体或分类法
 - **使用 NVIDIA API**：连接到特定用例的云模型
 
-## 执照
+<a id="license"></a>
+## 许可证
 
 [MIT](LICENSE)
 

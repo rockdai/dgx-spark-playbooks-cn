@@ -2,9 +2,9 @@
 
 ## 用法
 
-### 步骤 1. 克隆存储库
+### 步骤 1. 克隆仓库
 
-从 GitHub 克隆 dgx-spark-playbooks 存储库
+从 GitHub 克隆 dgx-spark-playbooks 仓库
 
 ### 步骤 2. 切换到 multi Spark 集群设置脚本目录
 

@@ -104,14 +104,14 @@ roceP2p1s0f0 port 1 ==> enP2p1s0f0np0 (Up)
 roceP2p1s0f1 port 1 ==> enP2p1s0f1np1 (Up)
 ```
 
-> [!NOTE] 
+> [!NOTE]
 > 如果并非所有接口都显示为 'Up'，请检查 QSFP 线缆连接，重启系统后再试。
 
 ## 第 3 步：配置网络接口
 
 请选择一种方式来配置网络接口。各选项互斥。建议优先使用选项 1，以降低网络配置复杂度。
 
-> [!NOTE] 
+> [!NOTE]
 > 每个 CX7 端口都能提供完整的 200GbE 带宽。
 > 在三节点环形拓扑中，每个节点上的四个接口都必须分配 IP 地址，才能构成对称集群。
 
@@ -334,7 +334,6 @@ sudo netplan apply
 
 <a id="troubleshooting"></a>
 ## 故障排查
-
 | 现象 | 原因 | 解决方法 |
 |---------|-------|-----|
 | 出现 "Network unreachable" 错误 | 网络接口未配置 | 检查 netplan 配置并执行 `sudo netplan apply` |

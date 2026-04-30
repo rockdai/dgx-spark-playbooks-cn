@@ -72,9 +72,9 @@ python scripts/preprocess_data.py --use_arango --arango_url "http://localhost:85
 python scripts/train_test_gnn.py --output_dir ./output
 ```
 
-#### 培训选项
+#### 训练选项
 
-您可以使用选项自定义培训：
+您可以使用选项自定义训练：
 
 ```bash
 python scripts/train_test_gnn.py --output_dir ./output --gnn_hidden_channels 2048 --num_gnn_layers 6 --epochs 5 --batch_size 2
@@ -115,4 +115,4 @@ python scripts/train_test_gnn.py --output_dir ./output --eval_only
 - 该脚本假设您的 ArangoDB 实例包含上述格式的数据
 - 您需要提供问答对和语料库文档
 - 确保您的 ArangoDB 包含与您的语料库相关的知识图三元组
-- 大型 LLM 模型需要大量 GPU 内存进行训练 
+- 大型 LLM 模型需要大量 GPU 内存进行训练

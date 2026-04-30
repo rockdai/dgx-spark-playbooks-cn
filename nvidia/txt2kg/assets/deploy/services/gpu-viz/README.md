@@ -133,7 +133,7 @@ const response = await fetch('/api/unified-gpu/visualize', {
 
 ## 🔧 配置选项
 
-### 本地GPU模式  
+### 本地GPU模式
 - `layout_algorithm`：“force_atlas2”、“光谱”、“fruchterman_reingold”
 - `clustering_algorithm`：“莱顿”、“鲁汶”、“光谱”
 - `compute_centrality`：真/假
@@ -168,7 +168,7 @@ const response = await fetch('/api/unified-gpu/visualize', {
 ### ✅ 优点
 - **单一服务** - 一个端口，一次部署
 - **模式切换** - 选择每个图表的最佳处理
-- **回退处理** - 如果 GPU 不可用则优雅降级  
+- **回退处理** - 如果 GPU 不可用则优雅降级
 - **一致的 API** - 所有模式均具有相同的界面
 - **更好的测试** - 模式之间的轻松比较
 
@@ -176,7 +176,7 @@ const response = await fetch('/api/unified-gpu/visualize', {
 - **本地GPU**：私有数据、大规模处理、自定义算法
 - **本地CPU**：开发、测试、小图
 
-## 🐛 故障排除
+## 🐛 故障排查
 
 ### 未检测到 GPU
 ```bash
@@ -196,4 +196,4 @@ curl http://localhost:8080/api/health
 
 1. **大型图（>100k 节点）**：使用 `local_gpu` 模式
 2. **开发**：使用 `local_cpu` 模式提高速度
-3. **混合工作负载**：根据图形大小动态切换模式 
+3. **混合工作负载**：根据图形大小动态切换模式

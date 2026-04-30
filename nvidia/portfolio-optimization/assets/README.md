@@ -20,7 +20,7 @@ ___
 - 投资组合构建和分析
 - 绩效评估和回测
 
-如果您想深入了解笔记本本身，**[check out the blog: Accelerating Real-Time Financial Decisions with Quantitative Portfolio Optimization](https://developer.nvidia.com/blog/accelerating-real-time-financial-decisions-with-quantitative-portfolio-optimization/)**
+如果您想深入了解笔记本本身，**[博客：Accelerating Real-Time Financial Decisions with Quantitative Portfolio Optimization](https://developer.nvidia.com/blog/accelerating-real-time-financial-decisions-with-quantitative-portfolio-optimization/)**
 
 **请务必使用投资组合优化内核运行笔记本！** 说明将位于笔记本的开头。
 
@@ -43,7 +43,7 @@ ___
 ```bash
 pip install "cudf-cu13==25.10.*" "cuml-cu13==25.10.*" jupyterlab
 ```
-或者 
+或者
 
 ```bash
 docker run --gpus all --pull always --rm -it \
@@ -66,7 +66,7 @@ source $HOME/.local/bin/env
 uv sync --extra cuda13
 
 # Optional: Install development tools
-# uv sync --extra cuda13 --extra dev  
+# uv sync --extra cuda13 --extra dev
 
 # Create a Jupyter kernel for this environment
 uv run python -m ipykernel install --user --name=portfolio-opt --display-name "Portfolio Optimization"

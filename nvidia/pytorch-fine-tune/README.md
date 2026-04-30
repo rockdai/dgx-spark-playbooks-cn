@@ -1,40 +1,41 @@
-# 使用 Pytorch 进行微调
+# 使用 PyTorch 进行微调
 
-> 使用 Pytorch 在本地微调模型
+> 使用 PyTorch 在本地微调模型
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Run on two Sparks](#run-on-two-sparks)
-  - [Step 1. Configure network connectivity](#step-1-configure-network-connectivity)
-  - [Step 2. Configure Docker permissions](#step-2-configure-docker-permissions)
-  - [Step 3. Install NVIDIA Container Toolkit & setup Docker environment](#step-3-install-nvidia-container-toolkit-setup-docker-environment)
-  - [Step 4. Enable resource advertising](#step-4-enable-resource-advertising)
-  - [Step 5. Initialize Docker Swarm](#step-5-initialize-docker-swarm)
-  - [Step 6. Join worker nodes and deploy](#step-6-join-worker-nodes-and-deploy)
-  - [Step 7. Find your Docker container ID](#step-7-find-your-docker-container-id)
-  - [Step 9. Adapt the configuration files](#step-9-adapt-the-configuration-files)
-  - [Step 10. Run finetuning scripts](#step-10-run-finetuning-scripts)
-  - [Step 14. Cleanup and rollback](#step-14-cleanup-and-rollback)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [在两台 Spark 上运行](#run-on-two-sparks)
+  - [步骤 1. 配置网络连接](#step-1-configure-network-connectivity)
+  - [步骤2.配置Docker权限](#step-2-configure-docker-permissions)
+  - [步骤 3. 安装 NVIDIA Container Toolkit 并设置 Docker 环境](#step-3-install-nvidia-container-toolkit-setup-docker-environment)
+  - [步骤 4. 启用资源广告](#step-4-enable-resource-advertising)
+  - [步骤 5. 初始化 Docker Swarm](#step-5-initialize-docker-swarm)
+  - [步骤 6. 加入工作节点并部署](#step-6-join-worker-nodes-and-deploy)
+  - [步骤 7. 查找您的 Docker 容器 ID](#step-7-find-your-docker-container-id)
+  - [步骤 9. 调整配置文件](#step-9-adapt-the-configuration-files)
+  - [步骤 10. 运行微调脚本](#step-10-run-finetuning-scripts)
+  - [步骤 14. 清理和回滚](#step-14-cleanup-and-rollback)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
 
-本手册将Instruct您设置和使用 Pytorch 在 NVIDIA Spark 设备上微调大型语言模型。
+本手册将引导您设置和使用 PyTorch 在 NVIDIA Spark 设备上微调大型语言模型。
 
 ## 你将完成什么
 
-您将在 NVIDIA Spark 设备上为大型语言模型（1-70B 参数）建立完整的微调环境。 
+您将在 NVIDIA Spark 设备上为大型语言模型（1-70B 参数）建立完整的微调环境。
 最后，您将拥有一个支持参数高效微调 (PEFT) 和监督微调 (SFT) 的有效安装。
 
 ## 开始之前需要了解什么
 
-- 具有 Pytorch 微调经验
+- 具有 PyTorch 微调经验
 - 使用 Docker
 
 
@@ -45,18 +46,18 @@
 
 ## 附属文件
 
-微调所需的所有文件都包含在 [the GitHub repository here](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/pytorch-fine-tune) 文件夹中。
+微调所需的所有文件都包含在 [GitHub 仓库](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/pytorch-fine-tune) 文件夹中。
 
 ## 时间与风险
 
-* **时间估计：** 30-45 分钟用于设置和运行微调。微调运行时间根据模型大小而变化 
-* **风险：** 模型下载可能很大（数 GB），ARM64 软件包兼容性问题可能需要进行故障排除。
+* **时间估计：** 30-45 分钟用于设置和运行微调。微调运行时间根据模型大小而变化
+* **风险：** 模型下载可能很大（数 GB），ARM64 软件包兼容性问题可能需要进行故障排查。
 * **最后更新：** 2025 年 1 月 15 日
   * 添加两个Spark分布式finetuning示例
-  * 添加详细说明以在 Llama3 3B、8B 和 70B 型号上运行完整的 SFT、LoRA 和 qLoRA 工作流程。
+  * 添加详细说明以在 Llama3 3B、8B 和 70B 模型上运行完整的 SFT、LoRA 和 qLoRA 工作流程。
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤1.配置Docker权限
 
 要在不使用 sudo 的情况下轻松管理容器，您必须位于 `docker` 组中。如果您选择跳过此步骤，则需要使用 sudo 运行 Docker 命令。
@@ -74,7 +75,7 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-## 步骤 2. 拉取最新的 Pytorch 容器
+## 步骤 2. 拉取最新的 PyTorch 容器
 
 ```bash
 docker pull nvcr.io/nvidia/pytorch:25.11-py3
@@ -103,7 +104,7 @@ hf auth login
 ##<Enter n for git credential>
 ```
 
-## 第 6 步：克隆 git 存储库并微调配方
+## 第 6 步：克隆 git 仓库并微调配方
 
 ```bash
 git clone https://github.com/NVIDIA/dgx-spark-playbooks
@@ -142,7 +143,7 @@ python Llama3_70B_qLoRA_finetuning.py
 
 所有脚本都支持以下命令行参数进行自定义：
 
-##### 型号配置
+##### 模型配置
 - `--model_name`：模型名称或路径（默认值：因脚本而异）
 - `--dtype`：模型精度 - `float32`、`float16` 或 `bfloat16`（默认值：`bfloat16`）
 
@@ -175,8 +176,10 @@ python Llama3_8B_LoRA_finetuning.py \
   --batch_size 2
   ```
 
-## 在两个 Spark 上运行
+<a id="run-on-two-sparks"></a>
+## 在两台 Spark 上运行
 
+<a id="step-1-configure-network-connectivity"></a>
 ### 步骤 1. 配置网络连接
 
 按照 [Connect two Sparks](https://build.nvidia.com/spark/connect-two-sparks/stacked-sparks) 手册中的网络设置说明在 DGX Spark 节点之间建立连接。
@@ -187,6 +190,7 @@ python Llama3_8B_LoRA_finetuning.py \
 - 无密码 SSH 设置
 - 网络连接验证
 
+<a id="step-2-configure-docker-permissions"></a>
 ### 步骤2.配置Docker权限
 
 要在不使用 sudo 的情况下轻松管理容器，您必须位于 `docker` 组中。如果您选择跳过此步骤，则需要使用 sudo 运行 Docker 命令。
@@ -203,10 +207,12 @@ docker ps
 sudo usermod -aG docker $USER
 newgrp docker
 ```
+<a id="step-3-install-nvidia-container-toolkit-setup-docker-environment"></a>
 ### 步骤 3. 安装 NVIDIA Container Toolkit 并设置 Docker 环境
 
 确保在将提供 GPU 资源的每个节点（管理器和工作节点）上安装 NVIDIA 驱动程序和 NVIDIA Container Toolkit。该包使 Docker 容器能够访问主机的 GPU 硬件。确保您完成 [installation steps](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)，包括 NVIDIA 容器工具包的 [Docker configuration](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#configuring-docker)。
 
+<a id="step-4-enable-resource-advertising"></a>
 ### 步骤 4. 启用资源广告
 
 首先，通过运行以下命令找到您的 GPU UUID：
@@ -249,6 +255,7 @@ sudo systemctl restart docker
 
 在所有节点上重复这些步骤。
 
+<a id="step-5-initialize-docker-swarm"></a>
 ### 步骤 5. 初始化 Docker Swarm
 
 在要用作主节点的任何节点上，运行以下 swarm 初始化命令
@@ -267,6 +274,7 @@ To add a worker to this swarm, run the following command:
 To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
 ```
 
+<a id="step-6-join-worker-nodes-and-deploy"></a>
 ### 步骤 6. 加入工作节点并部署
 
 现在我们可以继续设置集群的工作节点。在所有工作节点上重复这些步骤。
@@ -298,14 +306,15 @@ docker stack ps finetuning-multinode
 ```
 nvidia@spark-1b3b:~$ docker stack ps finetuning-multinode
 ID             NAME                                IMAGE                              NODE         DESIRED STATE   CURRENT STATE            ERROR     PORTS
-vlun7z9cacf9   finetuning-multinode_finetunine.1   nvcr.io/nvidia/pytorch:25.10-py3   spark-1d84   Running         Starting 2 seconds ago             
-tjl49zicvxoi   finetuning-multinode_finetunine.2   nvcr.io/nvidia/pytorch:25.10-py3   spark-1b3b   Running         Starting 2 seconds ago             
+vlun7z9cacf9   finetuning-multinode_finetunine.1   nvcr.io/nvidia/pytorch:25.10-py3   spark-1d84   Running         Starting 2 seconds ago
+tjl49zicvxoi   finetuning-multinode_finetunine.2   nvcr.io/nvidia/pytorch:25.10-py3   spark-1b3b   Running         Starting 2 seconds ago
 
 ```
 
 > [！笔记]
-> 如果您的“当前状态”不是“正在运行”，请参阅故障排除部分以获取更多信息。
+> 如果您的“当前状态”不是“正在运行”，请参阅故障排查部分以获取更多信息。
 
+<a id="step-7-find-your-docker-container-id"></a>
 ### 步骤 7. 查找您的 Docker 容器 ID
 
 您可以使用 `docker ps` 查找您的 Docker 容器 ID。您可以将容器 ID 保存在变量中，如下所示。在两个节点上运行此命令。
@@ -313,6 +322,7 @@ tjl49zicvxoi   finetuning-multinode_finetunine.2   nvcr.io/nvidia/pytorch:25.10-
 export FINETUNING_CONTAINER=$(docker ps -q -f name=finetuning-multinode)
 ```
 
+<a id="step-9-adapt-the-configuration-files"></a>
 ### 步骤 9. 调整配置文件
 
 对于多节点运行，我们提供了2个配置文件：
@@ -332,11 +342,12 @@ main_process_ip: < TODO: specify IP >
 main_process_port: < TODO: specify port >
 ```
 
-所有脚本和配置文件都在此 [**repository**](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/pytorch-fine-tune/assets) 中可用。
+所有脚本和配置文件都在此 [**仓库**](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/pytorch-fine-tune/assets) 中可用。
 
+<a id="step-10-run-finetuning-scripts"></a>
 ### 步骤 10. 运行微调脚本
 
-成功运行前面的步骤后，您可以使用此 [**repository**](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/pytorch-fine-tune/assets) 中提供的 `run-multi-llama_*` 脚本之一进行微调。以下是 Llama3 70B 使用 LoRa 进行微调和 FSDP2 的示例。
+成功运行前面的步骤后，您可以使用此 [**仓库**](https://github.com/NVIDIA/dgx-spark-playbooks/blob/main/nvidia/pytorch-fine-tune/assets) 中提供的 `run-multi-llama_*` 脚本之一进行微调。以下是 Llama3 70B 使用 LoRa 进行微调和 FSDP2 的示例。
 
 ```bash
 ## Need to specify huggingface token for model download.
@@ -349,8 +360,9 @@ docker exec \
   accelerate launch --config_file=/workspace/configs/config_fsdp_lora.yaml /workspace/Llama3_70B_LoRA_finetuning.py'
 ```
 
-在运行期间，微调的进度条将仅出现在主节点的标准输出上。这是预期行为，因为 `accelerate` 使用 `tqdm` 周围的包装器仅按照 [**here**](https://github.com/huggingface/accelerate/blob/main/src/accelerate/utils/tqdm.py#L25) 的说明显示主进程的进度。在工作节点上使用 `nvidia-smi` 应显示 GPU 已被使用。
+在运行期间，微调的进度条将仅出现在主节点的标准输出上。这是预期行为，因为 `accelerate` 使用 `tqdm` 周围的包装器仅按照 [**这里**](https://github.com/huggingface/accelerate/blob/main/src/accelerate/utils/tqdm.py#L25) 的说明显示主进程的进度。在工作节点上使用 `nvidia-smi` 应显示 GPU 已被使用。
 
+<a id="step-14-cleanup-and-rollback"></a>
 ### 步骤 14. 清理和回滚
 
 在领导节点上使用以下命令停止并删除容器：
@@ -365,18 +377,18 @@ docker stack rm finetuning-multinode
 rm -rf $HOME/.cache/huggingface/hub/models--meta-llama* $HOME/.cache/huggingface/hub/datasets*
 ```
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|--------|-----|
-| 无法访问 URL 的门禁存储库 | 某些 HuggingFace 模型的访问受到限制 | 重新生成你的 [HuggingFace token](https://huggingface.co/docs/hub/en/security-tokens);并请求在您的网络浏览器上访问 [gated model](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
+| 无法访问 URL 的门禁仓库 | 某些 Hugging Face 模型的访问受到限制 | 重新生成你的 [Hugging Face token](https://huggingface.co/docs/hub/en/security-tokens);并请求在您的网络浏览器上访问 [gated model](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
 | 多次 Spark 运行中的错误和超时 | 各种原因 | 我们建议设置以下变量以启用额外的日志记录和运行时一致性检查 <br> `ACCELERATE_DEBUG_MODE=1`<br> `ACCELERATE_LOG_LEVEL=DEBUG`<br> `TORCH_CPP_LOG_LEVEL=INFO`<br> `TORCH_DISTRIBUTED_DEBUG=DETAIL`|
 | 任务：非零退出 (255) | 容器退出，错误代码为 255 | 使用 `docker ps -a --filter "name=finetuning-multinode"` 检查容器日志以获取容器 ID，然后使用 `docker logs <container_id>` 查看详细的错误消息 |
 |无法连接到位于 unix:///var/run/docker.sock 的 Docker 守护程序。 docker 守护进程是否正在运行？ | 由于 Docker Swarm 尝试绑定到过时或无法访问的本地链路 IP 地址而导致 Docker 守护进程崩溃 | 停止 Docker `sudo systemctl stop docker`<br> 删除 Swarm 状态 `sudo rm -rf /var/lib/docker/swarm`<br> 重新启动 Docker `sudo systemctl start docker`<br> 使用活动接口上的有效广告地址重新初始化 Swarm|
 
 > [！笔记]
-> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。 
-> 由于许多应用程序仍在更新以利用 UMA，因此即使在 
+> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。
+> 由于许多应用程序仍在更新以利用 UMA，因此即使在
 > DGX Spark 的内存容量。如果发生这种情况，请使用以下命令手动刷新缓冲区缓存：
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'

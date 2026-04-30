@@ -5,25 +5,26 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-  - [Step 1. Verify system requirements](#step-1-verify-system-requirements)
-  - [Step 2. Install SSH server (if needed)](#step-2-install-ssh-server-if-needed)
-  - [Step 3. Install Tailscale on NVIDIA DGX Spark](#step-3-install-tailscale-on-nvidia-dgx-spark)
-  - [Step 4. Verify Tailscale installation](#step-4-verify-tailscale-installation)
-  - [Step 5. Connect your DGX Spark to Tailscale network](#step-5-connect-your-dgx-spark-to-tailscale-network)
-  - [Step 6. Install Tailscale on client devices](#step-6-install-tailscale-on-client-devices)
-  - [Step 7. Connect client devices to tailnet](#step-7-connect-client-devices-to-tailnet)
-  - [Step 8. Verify network connectivity](#step-8-verify-network-connectivity)
-  - [Step 9. Configure SSH authentication](#step-9-configure-ssh-authentication)
-  - [Step 10. Test SSH connection](#step-10-test-ssh-connection)
-  - [Step 11. Validate installation](#step-11-validate-installation)
-  - [Step 13. Cleanup and rollback](#step-13-cleanup-and-rollback)
-  - [Step 14. Next steps](#step-14-next-steps)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+  - [步骤 1. 验证系统要求](#step-1-verify-system-requirements)
+  - [步骤 2. 安装 SSH 服务器（如果需要）](#step-2-install-ssh-server-if-needed)
+  - [步骤 3. 在 NVIDIA DGX Spark 上安装 Tailscale](#step-3-install-tailscale-on-nvidia-dgx-spark)
+  - [步骤 4. 验证 Tailscale 安装](#step-4-verify-tailscale-installation)
+  - [步骤 5. 将 DGX Spark 连接到 Tailscale 网络](#step-5-connect-your-dgx-spark-to-tailscale-network)
+  - [步骤 6. 在客户端设备上安装 Tailscale](#step-6-install-tailscale-on-client-devices)
+  - [步骤 7. 将客户端设备连接到 tailnet](#step-7-connect-client-devices-to-tailnet)
+  - [步骤 8. 验证网络连接](#step-8-verify-network-connectivity)
+  - [步骤 9. 配置 SSH 身份验证](#step-9-configure-ssh-authentication)
+  - [步骤 10. 测试 SSH 连接](#step-10-test-ssh-connection)
+  - [步骤 11. 验证安装](#step-11-validate-installation)
+  - [步骤 13. 清理和回滚](#step-13-cleanup-and-rollback)
+  - [步骤 14. 后续步骤](#step-14-next-steps)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
@@ -47,7 +48,7 @@ Tailscale 创建一个加密的点对点网状网络，允许安全访问
 - 使用终端/命令行界面
 - SSH 基本概念和用法
 - 在 Ubuntu 上使用 `apt` 安装软件包
-- 了解用户帐户和身份验证
+- 了解用户账户和身份验证
 - 熟悉systemd服务管理
 
 ## 先决条件
@@ -60,14 +61,14 @@ Tailscale 创建一个加密的点对点网状网络，允许安全访问
 - 用于远程访问的客户端设备（Mac、Windows 或 Linux）
 - 测试连接时客户端设备和 DGX Spark 不在同一网络上
 - 两台设备上的互联网连接
-- 用于 Tailscale 身份验证的有效电子邮件帐户（Google、GitHub、Microsoft）
+- 用于 Tailscale 身份验证的有效电子邮件账户（Google、GitHub、Microsoft）
 - SSH 服务器可用性检查：`systemctl status ssh`
 - 包管理器工作：`sudo apt update`
-- 在 DGX Spark 设备上具有 sudo 权限的用户帐户
+- 在 DGX Spark 设备上具有 sudo 权限的用户账户
 
 ## 时间与风险
 
-* **持续时间**：初始设置 15-30 分钟，每个附加设备 5 分钟
+* **预计时间**：初始设置 15-30 分钟，每个附加设备 5 分钟
 * **风险**：中
   * 潜在的 SSH 服务配置冲突
   * 初始设置期间的网络连接问题
@@ -76,8 +77,9 @@ Tailscale 创建一个加密的点对点网状网络，允许安全访问
 * **最后更新：** 11/07/2025
   * 少量文案编辑
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
+<a id="step-1-verify-system-requirements"></a>
 ### 步骤 1. 验证系统要求
 
 检查您的 NVIDIA DGX Spark 设备是否正在运行受支持的 Ubuntu 版本，并且
@@ -95,6 +97,7 @@ ping -c 3 google.com
 sudo whoami
 ```
 
+<a id="step-2-install-ssh-server-if-needed"></a>
 ### 步骤 2. 安装 SSH 服务器（如果需要）
 
 确保 SSH 服务器在您的 DGX Spark 设备上运行，因为 Tailscale 提供了
@@ -120,10 +123,11 @@ sudo systemctl enable ssh --now --no-pager
 systemctl status ssh --no-pager
 ```
 
+<a id="step-3-install-tailscale-on-nvidia-dgx-spark"></a>
 ### 步骤 3. 在 NVIDIA DGX Spark 上安装 Tailscale
 
 使用官方 Ubuntu 在 DGX Spark 上安装 Tailscale
-存储库。此步骤添加 Tailscale 软件包存储库并安装
+仓库。此步骤添加 Tailscale 软件包仓库并安装
 客户。
 
 ```bash
@@ -148,6 +152,7 @@ sudo apt update
 sudo apt install -y tailscale
 ```
 
+<a id="step-4-verify-tailscale-installation"></a>
 ### 步骤 4. 验证 Tailscale 安装
 
 在继续之前，请确认 Tailscale 已正确安装在您的 DGX Spark 设备上
@@ -161,6 +166,7 @@ tailscale version
 sudo systemctl status tailscaled --no-pager
 ```
 
+<a id="step-5-connect-your-dgx-spark-to-tailscale-network"></a>
 ### 步骤 5. 将 DGX Spark 连接到 Tailscale 网络
 
 使用您选择的身份通过 Tailscale 验证您的 DGX Spark 设备
@@ -174,6 +180,7 @@ sudo tailscale up
 ## Choose from: Google, GitHub, Microsoft, or other supported providers
 ```
 
+<a id="step-6-install-tailscale-on-client-devices"></a>
 ### 步骤 6. 在客户端设备上安装 Tailscale
 
 在您将用于远程连接到 DGX Spark 的设备上安装 Tailscale。
@@ -217,15 +224,16 @@ sudo apt update
 sudo apt install -y tailscale
 ```
 
+<a id="step-7-connect-client-devices-to-tailnet"></a>
 ### 步骤 7. 将客户端设备连接到 tailnet
 
 使用相同的身份提供商在每个客户端设备上登录 Tailscale
-您用于 DGX Spark 的帐户。
+您用于 DGX Spark 的账户。
 
 **在 macOS/Windows (GUI) 上：**
 - 启动 Tailscale 应用程序
 - 点击“登录”按钮
-- 使用 DGX Spark 上使用的相同帐户登录
+- 使用 DGX Spark 上使用的相同账户登录
 
 **在 Linux (CLI) 上：**
 
@@ -236,6 +244,7 @@ sudo tailscale up
 ## Complete authentication in browser using same account
 ```
 
+<a id="step-8-verify-network-connectivity"></a>
 ### 步骤 8. 验证网络连接
 
 之前测试设备是否可以通过 Tailscale 网络进行通信
@@ -251,6 +260,7 @@ tailscale ping <SPARK_HOSTNAME>
 ## Example output should show successful pings
 ```
 
+<a id="step-9-configure-ssh-authentication"></a>
 ### 步骤 9. 配置 SSH 身份验证
 
 设置 SSH 密钥身份验证以安全访问 DGX Spark。这
@@ -277,6 +287,7 @@ chmod 600 ~/.ssh/authorized_keys
 chmod 700 ~/.ssh
 ```
 
+<a id="step-10-test-ssh-connection"></a>
 ### 步骤 10. 测试 SSH 连接
 
 使用 SSH 通过 Tailscale 网络连接到 DGX Spark 进行验证
@@ -293,6 +304,7 @@ ssh -i ~/.ssh/tailscale_spark <USERNAME>@<TAILSCALE_IP>
 ## ssh -i ~/.ssh/tailscale_spark nvidia@my-spark-device
 ```
 
+<a id="step-11-validate-installation"></a>
 ### 步骤 11. 验证安装
 
 验证 Tailscale 是否正常工作以及您的 SSH 连接是否稳定。
@@ -316,6 +328,7 @@ ssh -i ~/.ssh/tailscale_spark <USERNAME>@<SPARK_HOSTNAME> 'nvidia-smi'
 - 文件传输成功
 - 远程命令执行工作
 
+<a id="step-13-cleanup-and-rollback"></a>
 ### 步骤 13. 清理和回滚
 
 如果需要，请完全移除尾鳞。这将断开设备与
@@ -341,6 +354,7 @@ sudo apt update
 
 要恢复：重新运行安装步骤 3-5。
 
+<a id="step-14-next-steps"></a>
 ### 步骤 14. 后续步骤
 
 您的 Tailscale 设置已完成。您现在可以：
@@ -350,8 +364,8 @@ sudo apt update
 - 打开 DGX 仪表板并启动 JupyterLab，然后连接：
   `ssh -L 8888:localhost:1102 <USERNAME>@<SPARK_HOSTNAME>`
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|-------|-----|
 | `tailscale up` 身份验证失败 | 网络问题 | 检查互联网，尝试 `curl -I login.tailscale.com` |
@@ -361,4 +375,4 @@ sudo apt update
 | 设备丢失 | 不同的账户 | 为所有设备使用相同的身份提供商 |
 
 
-有关最新的已知问题，请查看 [DGX Spark User Guide](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。
+有关最新的已知问题，请查看 [DGX Spark 用户指南](https://docs.nvidia.com/dgx/dgx-spark/known-issues.html)。

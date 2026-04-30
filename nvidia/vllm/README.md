@@ -4,15 +4,16 @@
 
 ## 目录
 
-- [Overview](#overview)
-- [Instructions](#instructions)
-- [Run on two Sparks](#run-on-two-sparks)
-  - [Step 11. (Optional) Launch 405B inference server](#step-11-optional-launch-405b-inference-server)
-- [Run on multiple Sparks through a switch](#run-on-multiple-sparks-through-a-switch)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [操作步骤](#instructions)
+- [在两台 Spark 上运行](#run-on-two-sparks)
+  - [步骤 11.（可选）启动 405B 推理服务器](#step-11-optional-launch-405b-inference-server)
+- [通过交换机在多个 Spark 上运行](#run-on-multiple-sparks-through-a-switch)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
@@ -50,9 +51,9 @@ vLLM 是一种推理引擎，旨在高效运行大型语言模型。关键思想
 
 ## 模型支持矩阵
 
-Spark 上的 vLLM 支持以下模型。所有列出的型号均可供使用：
+Spark 上的 vLLM 支持以下模型。所有列出的模型均可供使用：
 
-| 模型 | 量化 | 支持状态 | 高频手柄 |
+| 模型 | 量化 | 支持状态 | 模型标识 |
 |-------|-------------|----------------|-----------|
 | **Gemma 4 31B IT** | BF16 | ✅ | [`google/gemma-4-31B-it`](https://huggingface.co/google/gemma-4-31B-it) |
 | **Gemma 4 31B IT** | NVFP4 | ✅ | [`nvidia/Gemma-4-31B-IT-NVFP4`](https://huggingface.co/nvidia/Gemma-4-31B-IT-NVFP4) |
@@ -97,8 +98,8 @@ Spark 上的 vLLM 支持以下模型。所有列出的型号均可供使用：
 * **最后更新：** 2026 年 4 月 2 日
   * 添加对 Gemma 4 模型系列的支持
 
-## 指示
-
+<a id="instructions"></a>
+## 操作步骤
 ## 步骤1.配置Docker权限
 
 要在不使用 sudo 的情况下轻松管理容器，您必须位于 `docker` 组中。如果您选择跳过此步骤，则需要使用 sudo 运行 Docker 命令。
@@ -187,7 +188,8 @@ docker rmi nvcr.io/nvidia/vllm
 - **监控：** 设置日志记录和指标收集以供生产使用
 - **模型管理：**探索其他模型格式和量化选项
 
-## 在两个 Spark 上运行
+<a id="run-on-two-sparks"></a>
+## 在两台 Spark 上运行
 
 ## 步骤 1. 配置网络连接
 
@@ -343,7 +345,7 @@ curl http://localhost:8000/v1/completions \
 ## 步骤10.（可选）部署Llama 3.1 405B模型
 
 > [!WARNING]
-> 405B 型号的内存空间不足以供生产使用。
+> 405B 模型的内存空间不足以供生产使用。
 
 下载量化 405B 模型仅用于测试目的。
 
@@ -352,6 +354,7 @@ curl http://localhost:8000/v1/completions \
 huggingface-cli download hugging-quants/Meta-Llama-3.1-405B-Instruct-AWQ-INT4
 ```
 
+<a id="step-11-optional-launch-405b-inference-server"></a>
 ### 步骤 11.（可选）启动 405B 推理服务器
 
 使用大型模型的内存受限参数启动服务器。
@@ -413,6 +416,7 @@ http://<head-node-ip>:8265
 ## - Alternative quantization methods (FP8, INT4)
 ```
 
+<a id="run-on-multiple-sparks-through-a-switch"></a>
 ## 通过交换机在多个 Spark 上运行
 
 ## 步骤 1. 配置网络连接
@@ -530,7 +534,7 @@ docker exec $VLLM_CONTAINER ray status
 
 ## 步骤 7. 下载 MiniMax M2.5 模型
 
-如果您正在运行四个或更多火花，则可以轻松地使用张量并行性运行此模型。使用 Hugging Face 进行身份验证并下载模型。
+如果您正在运行四台或更多 Spark，则可以轻松使用张量并行运行此模型。使用 Hugging Face 进行身份验证并下载模型。
 
 ```bash
 ## On all nodes, from within the docker containers created in previous steps, run the following
@@ -601,8 +605,8 @@ http://<head-node-ip>:8265
 ## - Other models which can fit on the cluster with different quantization methods (FP8, NVFP4)
 ```
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 ## 在单个 Spark 上运行的常见问题
 
 | 症状 | 原因 | 使固定 |
@@ -611,13 +615,13 @@ http://<head-node-ip>:8265
 | 容器注册表身份验证失败 | GitLab 令牌无效或过期 | 生成新的身份验证令牌 |
 | SM_121a 架构无法识别 | 缺少 LLVM 补丁 | 验证应用于 LLVM 源的 SM_121a 补丁 |
 
-## 在两个 Spark 上运行的常见问题
+## 在两台 Spark 上运行的常见问题
 | 症状 | 原因 | 使固定 |
 |---------|--------|-----|
 | 节点 2 在 Ray 集群中不可见 | 网络连接问题 | 验证 QSFP 电缆连接，检查 IP 配置 |
-| 无法访问 URL 的门禁存储库 | 某些 HuggingFace 模型的访问受到限制 | 重新生成你的 [HuggingFace token](https://huggingface.co/docs/hub/en/security-tokens);并请求在您的网络浏览器上访问 [gated model](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
+| 无法访问 URL 的门禁仓库 | 某些 Hugging Face 模型的访问受到限制 | 重新生成你的 [Hugging Face token](https://huggingface.co/docs/hub/en/security-tokens);并请求在您的网络浏览器上访问 [gated model](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
 | 模型下载失败 | 身份验证或网络问题 | 重新运行 `huggingface-cli login`，检查互联网访问情况 |
-| 无法访问 URL 的门禁存储库 | 某些 HuggingFace 模型的访问受到限制 | 重新生成您的 HuggingFace 令牌；并请求在您的网络浏览器上访问门控模型 |
+| 无法访问 URL 的门禁仓库 | 某些 Hugging Face 模型的访问受到限制 | 重新生成您的 Hugging Face 令牌；并请求在您的网络浏览器上访问门控模型 |
 | CUDA 内存不足，405B | GPU显存不足 | 使用70B模型或减少max_model_len参数 |
 | 容器启动失败 | 缺少 ARM64 映像 | 按照 ARM64 指令重建 vLLM 映像 |
 

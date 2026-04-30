@@ -1,16 +1,17 @@
-# 使用 Ollama 打开 WebUI
+# 使用 Ollama 运行 Open WebUI
 
 > 安装 Open WebUI 并使用 Ollama 与 Spark 上的模型聊天
 
 ## 目录
 
-- [Overview](#overview)
-- [Set up Open WebUI on Remote Spark with NVIDIA Sync](#set-up-open-webui-on-remote-spark-with-nvidia-sync)
-- [Set Up Manually](#set-up-manually)
-- [Troubleshooting](#troubleshooting)
+- [概述](#overview)
+- [使用 NVIDIA Sync 在远程 Spark 上设置 Open WebUI](#set-up-open-webui-on-remote-spark-with-nvidia-sync)
+- [手动设置](#set-up-manually)
+- [故障排查](#troubleshooting)
 
 ---
 
+<a id="overview"></a>
 ## 概述
 
 ## 基本思路
@@ -24,31 +25,32 @@ Open WebUI 是一个可扩展、自托管的 AI 界面，完全离线运行。
 
 ## 开始之前需要了解什么
 
-- 如何 [Set Up Local Network Access](/spark/connect-to-your-spark) 到您的 DGX Spark 设备
+- 如何 [配置本地网络访问](/spark/connect-to-your-spark) 到您的 DGX Spark 设备
 
 ## 先决条件
 
--  DGX Spark [device is set up](https://docs.nvidia.com/dgx/dgx-spark/first-boot.html) 且可访问
--  [Local Network Access](/spark/connect-to-your-spark) 到您的 DGX Spark
+-  DGX Spark [设备已完成设置](https://docs.nvidia.com/dgx/dgx-spark/first-boot.html) 且可访问
+-  [本地网络访问](/spark/connect-to-your-spark) 到您的 DGX Spark
 -  有足够的磁盘空间用于 Open WebUI 容器映像和模型下载
 
 ## 时间与风险
 
-* **持续时间**：初始设置需要 15-20 分钟，加上模型下载时间（因模型大小而异）
+* **预计时间**：初始设置需要 15-20 分钟，加上模型下载时间（因模型大小而异）
 * **风险**：
   * Docker 权限问题可能需要更改用户组并重新启动会话
   * 大型模型下载可能需要大量时间，具体取决于网络速度
 * **最后更新：** 2025 年 10 月 28 日
   * 少量文案编辑
 
+<a id="set-up-open-webui-on-remote-spark-with-nvidia-sync"></a>
 ## 使用 NVIDIA Sync 在远程 Spark 上设置 Open WebUI
 
 > [！提示]
-> 如果您尚未安装 NVIDIA Sync，[learn how here.](/spark/connect-to-your-spark/sync)
+> 如果您尚未安装 NVIDIA Sync，[参阅安装说明](/spark/connect-to-your-spark/sync)
 
 ## 步骤1.配置Docker权限
 
-要使用 NVIDIA Sync 轻松管理容器，您必须能够在不使用 sudo 的情况下运行 Docker 命令。 
+要使用 NVIDIA Sync 轻松管理容器，您必须能够在不使用 sudo 的情况下运行 Docker 命令。
 
 从 NVIDIA Sync 打开终端应用程序以启动交互式 SSH 会话并测试 Docker 访问。在终端中，运行：
 
@@ -79,7 +81,7 @@ docker pull ghcr.io/open-webui/open-webui:ollama
 
 下载容器映像后，继续设置 NVIDIA Sync。
 
-## 步骤 3. 打开 NVIDIA 同步设置
+## 步骤 3. 打开 NVIDIA Sync设置
 
 - 单击系统托盘或任务栏中的 NVIDIA Sync 图标以打开主应用程序窗口。
 - 单击右上角的齿轮图标打开“设置”窗口。
@@ -93,7 +95,7 @@ docker pull ghcr.io/open-webui/open-webui:ollama
 
 使用以下值填写表格：
 
-- **名称**：打开WebUI
+- **名称**：Open WebUI
 - **端口**：12000
 - **在浏览器中自动打开以下路径**：选中此复选框
 - **启动脚本**：复制并粘贴整个脚本：
@@ -143,10 +145,10 @@ while :; do sleep 86400; done
 
 - 单击“添加”按钮将配置保存到 DGX Spark。
 
-## 步骤 5. 启动打开 WebUI
+## 步骤 5. 启动 Open WebUI
 
 - 单击系统托盘或任务栏中的 NVIDIA Sync 图标以打开主应用程序窗口。
-- 在“自定义”部分下，单击“打开 WebUI”。
+- 在“自定义”部分下，单击“Open WebUI”。
 
 您的默认 Web 浏览器应自动打开至位于 `http://localhost:12000` 的 Open WebUI 界面。
 
@@ -154,13 +156,13 @@ while :; do sleep 86400; done
 > 首次运行时，Open WebUI 将下载模型。这可能会延迟服务器启动并导致页面无法在浏览器中加载。只需等待并刷新页面即可。
 > 在未来的发布中，它将快速打开。
 
-## 步骤 6. 创建管理员帐户
+## 步骤 6. 创建管理员账户
 
-要开始使用 Open WebUI，您必须创建一个初始管理员帐户。这是一个本地帐户，您将用它来访问 Open WebUI 界面。
+要开始使用 Open WebUI，您必须创建一个初始管理员账户。这是一个本地账户，您将用它来访问 Open WebUI 界面。
 
 - 在打开的WebUI界面中，单击屏幕底部的“开始”按钮。
-- 使用您首选的凭据填写管理员帐户创建表单。
-- 单击注册按钮创建您的帐户并访问主界面。
+- 使用您首选的凭据填写管理员账户创建表单。
+- 单击注册按钮创建您的账户并访问主界面。
 
 ## 步骤 7. 下载并配置模型
 
@@ -180,12 +182,12 @@ while :; do sleep 86400; done
 - 在 Open WebUI 界面底部的聊天文本区域中，输入：**给我写一首关于 GPU 的俳句**。
 - 按 Enter 发送消息并等待模型的响应。
 
-## 步骤 9. 停止打开 WebUI 
+## 步骤 9. 停止 Open WebUI
 
 当您完成会话并想要停止 Open WebUI 服务器并回收资源时，请从 NVIDIA Sync 关闭 Open WebUI。
 
 - 单击系统托盘或任务栏中的 NVIDIA Sync 图标以打开主应用程序窗口。
-- 在“自定义”部分下，单击“打开 WebUI”条目右侧的 `x` 图标。
+- 在“自定义”部分下，单击“Open WebUI”条目右侧的 `x` 图标。
 - 这将关闭隧道并停止 Open WebUI docker 容器。
 
 ## 步骤 10. 后续步骤
@@ -198,7 +200,7 @@ while :; do sleep 86400; done
 
 ```bash
 docker stop open-webui
-docker rm open-webui 
+docker rm open-webui
 docker pull ghcr.io/open-webui/open-webui:ollama
 ```
 
@@ -232,6 +234,7 @@ docker volume rm open-webui open-webui-ollama
 
 打开“设置”>“自定义”选项卡并删除该条目，从 NVIDIA Sync 中删除自定义应用程序。
 
+<a id="set-up-manually"></a>
 ## 手动设置
 
 ## 步骤1.配置Docker权限
@@ -275,13 +278,13 @@ docker run -d -p 8080:8080 --gpus=all \
 > [！笔记]
 > 应用程序数据将存储在 `open-webui` 卷中，模型数据将存储在 `open-webui-ollama` 卷中。
 
-## 步骤4.创建管理员帐户
+## 步骤4.创建管理员账户
 
-设置 Open WebUI 的初始管理员帐户。这是一个本地帐户，您将用它来访问 Open WebUI 界面。
+设置 Open WebUI 的初始管理员账户。这是一个本地账户，您将用它来访问 Open WebUI 界面。
 
 - 在打开的WebUI界面中，单击屏幕底部的“开始”按钮。
-- 使用您首选的凭据填写管理员帐户创建表单。
-- 单击注册按钮创建您的帐户并访问主界面。
+- 使用您首选的凭据填写管理员账户创建表单。
+- 单击注册按钮创建您的账户并访问主界面。
 
 ## 步骤 5. 下载并配置模型
 
@@ -340,8 +343,8 @@ docker rmi ghcr.io/open-webui/open-webui:ollama
 docker volume rm open-webui open-webui-ollama
 ```
 
-## 故障排除
-
+<a id="troubleshooting"></a>
+## 故障排查
 ## 通过 NVIDIA Sync 设置的常见问题
 
 | 症状 | 原因 | 使固定 |
@@ -362,8 +365,8 @@ docker volume rm open-webui open-webui-ollama
 | 8080端口已被使用 | 使用端口的另一个应用程序 | 更改 docker 命令中的端口或停止冲突的服务 |
 
 > [！笔记]
-> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。 
-> 由于许多应用程序仍在更新以利用 UMA，因此即使在 
+> DGX Spark 使用统一内存架构 (UMA)，可实现 GPU 和 CPU 之间的动态内存共享。
+> 由于许多应用程序仍在更新以利用 UMA，因此即使在
 > DGX Spark 的内存容量。如果发生这种情况，请使用以下命令手动刷新缓冲区缓存：
 ```bash
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'

@@ -248,6 +248,9 @@ sudo netplan apply
 
 #### 选项 3：使用 netplan 配置文件手动分配 IP
 
+> [!NOTE]
+> `enp1s0f1np1` 和 `enP2p1s0f1np1` 被分配到**不同的子网**（分别为 `192.168.100.x/24` 和 `192.168.101.x/24`）。这是必需的——把两个不同的网络接口分配到同一个子网会导致网络和软件冲突（例如路由不明确以及 NCCL 通信失败）。
+
 在节点 1 上：
 ```bash
 ## Create the netplan configuration file
@@ -257,11 +260,11 @@ network:
   ethernets:
     enp1s0f1np1:
       addresses:
-        - 192.168.100.10/24
+        - 192.168.100.1/24
       dhcp4: no
     enP2p1s0f1np1:
       addresses:
-        - 192.168.100.11/24
+        - 192.168.101.1/24
       dhcp4: no
 EOF
 
@@ -281,11 +284,11 @@ network:
   ethernets:
     enp1s0f1np1:
       addresses:
-        - 192.168.100.12/24
+        - 192.168.100.2/24
       dhcp4: no
     enP2p1s0f1np1:
       addresses:
-        - 192.168.100.13/24
+        - 192.168.101.2/24
       dhcp4: no
 EOF
 
@@ -305,11 +308,11 @@ network:
   ethernets:
     enp1s0f1np1:
       addresses:
-        - 192.168.100.14/24
+        - 192.168.100.3/24
       dhcp4: no
     enP2p1s0f1np1:
       addresses:
-        - 192.168.100.15/24
+        - 192.168.101.3/24
       dhcp4: no
 EOF
 
@@ -329,11 +332,11 @@ network:
   ethernets:
     enp1s0f1np1:
       addresses:
-        - 192.168.100.16/24
+        - 192.168.100.4/24
       dhcp4: no
     enP2p1s0f1np1:
       addresses:
-        - 192.168.100.17/24
+        - 192.168.101.4/24
       dhcp4: no
 EOF
 

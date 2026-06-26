@@ -18,7 +18,7 @@
 
 SGLang 是一个用于大型语言模型和视觉语言模型的快速服务框架，使得
 通过共同设计后端运行时，您与模型的交互更快、更可控
-前端语言。此设置在单个 NVIDIA 上使用优化的 NVIDIA SGLang NGC 容器
+前端语言。此设置在单个 NVIDIA 上使用优化的 SGLang CUDA 容器
 采用 Blackwell 架构的 Spark 设备，提供具有所有依赖项的 GPU 加速推理
 预安装。
 
@@ -40,9 +40,9 @@ SGLang 是一个用于大型语言模型和视觉语言模型的快速服务框�
 - 采用 Blackwell 架构的 NVIDIA Spark 设备
 - Docker 引擎已安装并正在运行：`docker --version`
 - 安装的 NVIDIA GPU 驱动程序：`nvidia-smi`
-- 配置的 NVIDIA 容器工具包：`docker run --rm --gpus all nvcr.io/nvidia/sglang:26.02-py3 nvidia-smi`
+- 配置的 NVIDIA 容器工具包：`docker run --rm --gpus all lmsysorg/sglang:latest-cu130 nvidia-smi`
 - 足够的磁盘空间（>20GB可用）：`df -h`
-- 用于拉取 NGC 容器的网络连接：`ping nvcr.io`
+- 用于拉取容器的网络连接：`docker pull lmsysorg/sglang:latest-cu130`
 
 ## 附属文件
 
@@ -107,7 +107,7 @@ docker --version
 nvidia-smi
 
 ## Verify Docker GPU support
-docker run --rm --gpus all nvcr.io/nvidia/sglang:26.02-py3 nvidia-smi
+docker run --rm --gpus all lmsysorg/sglang:latest-cu130 nvidia-smi
 
 ## Check available disk space
 df -h /
@@ -128,7 +128,7 @@ newgrp docker
 
 ```bash
 ## Pull the SGLang container
-docker pull nvcr.io/nvidia/sglang:26.02-py3
+docker pull lmsysorg/sglang:latest-cu130
 
 ## Verify the image was downloaded
 docker images | grep sglang
@@ -144,7 +144,7 @@ docker images | grep sglang
 docker run --gpus all -it --rm \
   -p 30000:30000 \
   -v /tmp:/tmp \
-  nvcr.io/nvidia/sglang:26.02-py3 \
+  lmsysorg/sglang:latest-cu130 \
   bash
 ```
 
@@ -241,7 +241,7 @@ docker ps | grep sglang | awk '{print $1}' | xargs docker stop
 docker container prune -f
 
 ## Remove SGLang images (optional)
-docker rmi nvcr.io/nvidia/sglang:26.02-py3
+docker rmi lmsysorg/sglang:latest-cu130
 ```
 
 ## 步骤 10. 后续步骤

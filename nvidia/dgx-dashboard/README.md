@@ -120,7 +120,7 @@ ssh -L 11000:localhost:11000 -L <ASSIGNED_PORT>:localhost:<ASSIGNED_PORT> <USERN
 3. 等待状态显示为 "Running"（首次启动可能需要几分钟）
 4. 如果状态变为 "Running" 后，JupyterLab 没有自动在浏览器中打开（例如弹窗被拦截），可以点击 "Open In Browser" 按钮
 
-启动时，系统会自动创建默认工作目录（/home/<USERNAME>/jupyterlab），并自动设置虚拟环境。你可以通过查看工作目录中生成的 `requirements.txt` 文件来了解已安装的软件包。
+启动时，系统会自动创建默认工作目录（`/home/<USERNAME>/jupyterlab`），并自动设置虚拟环境。你可以通过查看工作目录中生成的 `requirements.txt` 文件来了解已安装的软件包。
 
 后续如果你想更换工作目录并创建新的隔离环境，可以先点击 "Stop"，修改新的工作目录路径，再次点击 "Start"。
 

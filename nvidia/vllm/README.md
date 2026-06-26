@@ -7,8 +7,8 @@
 - [概述](#overview)
 - [操作步骤](#instructions)
 - [在两台 Spark 上运行](#run-on-two-sparks)
-  - [步骤 11.（可选）启动 405B 推理服务器](#step-11-optional-launch-405b-inference-server)
 - [通过交换机在多个 Spark 上运行](#run-on-multiple-sparks-through-a-switch)
+- [使用 vLLM 运行 Agent Ready Qwen3.6 35B 模型](#run-agent-ready-qwen36-35b-model-with-vllm)
 - [故障排查](#troubleshooting)
 
 ---
@@ -55,6 +55,8 @@ Spark 上的 vLLM 支持以下模型。所有列出的模型均可供使用：
 
 | 模型 | 量化 | 支持状态 | 模型标识 |
 |-------|-------------|----------------|-----------|
+| **DiffusionGemma 26B A4B IT** | BF16 | ✅ | [`google/diffusiongemma-26B-A4B-it`](https://huggingface.co/google/diffusiongemma-26B-A4B-it) |
+| **DiffusionGemma 26B A4B IT** | NVFP4 | ✅ | [`nvidia/diffusiongemma-26B-A4B-it-NVFP4`](https://huggingface.co/nvidia/diffusiongemma-26B-A4B-it-NVFP4) |
 | **Nemotron-3-Nano-Omni-30B-A3B-Reasoning** | BF16 | ✅ | [`nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16`](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16) |
 | **Nemotron-3-Nano-Omni-30B-A3B-Reasoning** | FP8 | ✅ | [`nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8`](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8) |
 | **Nemotron-3-Nano-Omni-30B-A3B-Reasoning** | NVFP4 | ✅ | [`nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4`](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4) |
@@ -98,8 +100,8 @@ Spark 上的 vLLM 支持以下模型。所有列出的模型均可供使用：
 * **持续时间：** Docker 方法需要 30 分钟
 * **风险：** 容器注册表访问需要内部凭据
 * **回滚：**容器方法是非破坏性的。
-* **最后更新：** 2026 年 4 月 28 日
-  * 添加对 Nemotron-3-Nano-Omni reasoning BF16、FP8、NVFP4 的支持
+* **最后更新：** 2026 年 6 月 12 日
+  * 添加 Qwen3.6 35B 的 Agent Ready 模型配方
 
 <a id="instructions"></a>
 ## 操作步骤
@@ -135,15 +137,24 @@ newgrp docker
 从 https://catalog.ngc.nvidia.com/orgs/nvidia/containers/vllm 查找最新的容器版本
 
 ```bash
+## HuggingFace token (required)
+## Get a token from https://huggingface.co/settings/tokens
+export HF_TOKEN="your_huggingface_token"
+
 export LATEST_VLLM_VERSION=<latest_container_version>
 ## example
-## export LATEST_VLLM_VERSION=26.02-py3
+## export LATEST_VLLM_VERSION=26.05.post1-py3
 
 export HF_MODEL_HANDLE=<HF_HANDLE>
 ## example
 ## export HF_MODEL_HANDLE=openai/gpt-oss-20b
 
 docker pull nvcr.io/nvidia/vllm:${LATEST_VLLM_VERSION}
+```
+
+对于 DiffusionGemma 模型，使用 vLLM 自定义容器：
+```bash
+docker pull vllm/vllm-openai:gemma
 ```
 
 对于 Gemma 4 模型系列，使用 vLLM 自定义容器：
@@ -159,6 +170,31 @@ docker pull vllm/vllm-openai:gemma4-cu130
 docker run -it --gpus all -p 8000:8000 \
 nvcr.io/nvidia/vllm:${LATEST_VLLM_VERSION} \
 vllm serve ${HF_MODEL_HANDLE}
+```
+
+要运行 DiffusionGemma 模型（例如 `google/diffusiongemma-26B-A4B-it`）：
+```bash
+docker run -it \
+  -p 8000:8000 \
+  --gpus all \
+  --shm-size=16g \
+  -e HF_TOKEN="$HF_TOKEN" \
+  -e VLLM_USE_V2_MODEL_RUNNER=1 \
+  vllm/vllm-openai:gemma ${HF_MODEL_HANDLE} \
+  --gpu-memory-utilization 0.8 \
+  --max-model-len 262144 \
+  --attention-backend TRITON_ATTN \
+  --max-num-seqs 10 \
+  --diffusion-config '{"canvas_length":256}' \
+  --override-generation-config '{"max_new_tokens": null}' \
+  --enable-auto-tool-choice \
+  --tool-call-parser gemma4 \
+  --reasoning-parser gemma4 \
+  --enable-prefix-caching \
+  --default-chat-template-kwargs '{"enable_thinking": true}' \
+  --load-format fastsafetensors
+
+## For BF16 checkpoint add "--moe-backend triton" for better performance
 ```
 
 要运行 Gemma 4 模型系列中的模型（例如 `google/gemma-4-31B-it`）：
@@ -190,9 +226,17 @@ curl http://localhost:8000/v1/chat/completions \
 
 对于容器方法（非破坏性）：
 
+NGC 容器：
 ```bash
 docker rm $(docker ps -aq --filter ancestor=nvcr.io/nvidia/vllm:${LATEST_VLLM_VERSION})
 docker rmi nvcr.io/nvidia/vllm
+```
+
+上游容器：
+```bash
+docker stop "<container name>"
+docker rm "<container name>"
+docker rmi "<container image name>"
 ```
 
 ## 步骤 6. 后续步骤
@@ -215,20 +259,28 @@ docker rmi nvcr.io/nvidia/vllm
 - 无密码 SSH 设置
 - 网络连接验证
 
+> **注意：** 链接手册中的 `discover-sparks` 脚本会将其 SSH 密钥写入 `~/.ssh/`，如果该目录尚不存在则会失败。如果你从未在这两个节点上使用过 SSH，请先在两个节点上运行 `mkdir -p ~/.ssh && chmod 700 ~/.ssh`。
+
 ## 步骤2.下载集群部署脚本
 
 获取两个节点上的vLLM集群部署脚本。该脚本协调分布式推理所需的 Ray 集群设置。
 
 ```bash
-## Download on both nodes
-wget https://raw.githubusercontent.com/vllm-project/vllm/refs/heads/main/examples/online_serving/run_cluster.sh
+## Download on both nodes — pinned to a known-good commit so upstream changes
+## can't silently break this playbook against the 26.05-py3 image.
+wget https://raw.githubusercontent.com/vllm-project/vllm/51c1ee9b7c8acbba4899a8ebffd390685d171946/examples/ray_serving/run_cluster.sh
+
+## Patch the script to pip-install ray inside the container before ray starts.
+## The 26.05-py3 NGC image ships without ray (upstream made it an optional CUDA dep);
+## the install takes ~10s on first container launch.
+sed -i 's|^RAY_START_CMD="ray start|RAY_START_CMD="pip install -q --root-user-action=ignore '\''ray[default]>=2.9'\'' \&\& ray start|' run_cluster.sh
+
 chmod +x run_cluster.sh
 ```
 
 ## 步骤 3. 从 NGC 提取 NVIDIA vLLM 映像
 
-首先，您需要配置 docker 以从 NGC 拉取
-如果这是您第一次使用 docker run：
+首先，配置 docker。如果这是您第一次使用 docker，请运行：
 ```bash
 sudo groupadd docker
 sudo usermod -aG docker $USER
@@ -237,10 +289,11 @@ newgrp docker
 
 之后，您应该能够在不使用 `sudo` 的情况下运行 docker 命令。
 
+**在两个节点上**拉取映像：
 
 ```bash
-docker pull nvcr.io/nvidia/vllm:25.11-py3
-export VLLM_IMAGE=nvcr.io/nvidia/vllm:25.11-py3
+docker pull nvcr.io/nvidia/vllm:26.05-py3
+export VLLM_IMAGE=nvcr.io/nvidia/vllm:26.05-py3
 ```
 
 
@@ -249,12 +302,14 @@ export VLLM_IMAGE=nvcr.io/nvidia/vllm:25.11-py3
 在节点 1 上启动 Ray 集群头节点。该节点协调分布式推理并为 API 端点提供服务。
 
 ```bash
-## On Node 1, start head node
+## On Node 1, start head node. Run inside tmux/screen so an SSH drop doesn't
+## tear down the cluster (run_cluster.sh has an EXIT trap that stops the container).
 
 ## Get the IP address of the high-speed interface
 ## Use the interface that shows "(Up)" from ibdev2netdev (enp1s0f0np0 or enp1s0f1np1)
 export MN_IF_NAME=enp1s0f1np1
 export VLLM_HOST_IP=$(ip -4 addr show $MN_IF_NAME | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+export VLLM_IMAGE=nvcr.io/nvidia/vllm:26.05-py3
 
 echo "Using interface $MN_IF_NAME with IP $VLLM_HOST_IP"
 
@@ -269,10 +324,11 @@ bash run_cluster.sh $VLLM_IMAGE $VLLM_HOST_IP --head ~/.cache/huggingface \
   -e MASTER_ADDR=$VLLM_HOST_IP
 ```
 
+保持此终端打开——关闭它会停止头节点并拆除集群。
 
 ## 步骤5.启动Ray工作节点
 
-将节点 2 作为工作节点连接到 Ray 集群。这为张量并行性提供了额外的 GPU 资源。
+打开第二个终端，SSH 登录到节点 2（`ssh user@<NODE_2_IP>`），并作为工作节点加入 Ray 集群。将下方的 `<NODE_1_IP_ADDRESS>` 替换为节点 1 的 QSFP 侧 IP（在节点 1 上运行 `echo $VLLM_HOST_IP` 即可打印）。同样请在节点 2 上的 tmux/screen 中运行。
 
 ```bash
 ## On Node 2, join as worker
@@ -283,9 +339,11 @@ export MN_IF_NAME=enp1s0f1np1
 ## Get Node 2's own IP address
 export VLLM_HOST_IP=$(ip -4 addr show $MN_IF_NAME | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 
-## IMPORTANT: Set HEAD_NODE_IP to Node 1's IP address
-## You must get this value from Node 1 (run: echo $VLLM_HOST_IP on Node 1)
+## Set this to Node 1's QSFP IP (see step header)
 export HEAD_NODE_IP=<NODE_1_IP_ADDRESS>
+
+## Set the image tag (same as Step 3)
+export VLLM_IMAGE=nvcr.io/nvidia/vllm:26.05-py3
 
 echo "Worker IP: $VLLM_HOST_IP, connecting to head node at: $HEAD_NODE_IP"
 
@@ -299,7 +357,6 @@ bash run_cluster.sh $VLLM_IMAGE $HEAD_NODE_IP --worker ~/.cache/huggingface \
   -e RAY_memory_monitor_refresh_ms=0 \
   -e MASTER_ADDR=$HEAD_NODE_IP
 ```
-> **注意：** 将 `<NODE_1_IP_ADDRESS>` 替换为节点 1 中的实际 IP 地址，特别是 [Connect two Sparks](https://build.nvidia.com/spark/connect-two-sparks) 剧本中配置的 QSFP 接口 nep1s0f1np1。
 
 ## 步骤 6. 验证集群状态
 
@@ -318,12 +375,12 @@ docker exec $VLLM_CONTAINER ray status
 
 ## 步骤7.下载Llama 3.3 70B模型
 
-使用 Hugging Face 进行身份验证并下载推荐的生产就绪模型。
+Llama 3.3 70B 是一个门控模型——首先在 <https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct> 接受其许可协议，并创建一个具有读取权限的 HF 访问令牌。然后在容器内进行身份验证，使缓存落到 `/root/.cache/huggingface`（从 `~/.cache/huggingface` 挂载）。
 
 ```bash
-## From within the same container where `ray status` ran, run the following
-hf auth login
-hf download meta-llama/Llama-3.3-70B-Instruct
+docker exec -it $VLLM_CONTAINER /bin/bash -c '
+  hf auth login
+  hf download meta-llama/Llama-3.3-70B-Instruct'
 ```
 
 ## 步骤 8. 启动 Llama 3.3 70B 的推理服务器
@@ -332,18 +389,17 @@ hf download meta-llama/Llama-3.3-70B-Instruct
 
 ```bash
 ## On Node 1, enter container and start server
-export VLLM_CONTAINER=$(docker ps --format '{{.Names}}' | grep -E '^node-[0-9]+$')
 docker exec -it $VLLM_CONTAINER /bin/bash -c '
   vllm serve meta-llama/Llama-3.3-70B-Instruct \
-    --tensor-parallel-size 2 --max_model_len 2048'
+    --tensor-parallel-size 2 --max-model-len 2048 \
+    --distributed-executor-backend ray'
 ```
 
 ## 步骤9.测试70B模型推理
 
-使用示例推理请求验证部署。
+使用示例推理请求验证部署。在节点 1 本机上运行；如果从外部客户端访问，请将 `localhost` 替换为节点 1 的可达 IP。
 
 ```bash
-## Test from Node 1 or external client
 curl http://localhost:8000/v1/completions \
   -H "Content-Type: application/json" \
   -d '{
@@ -361,30 +417,36 @@ curl http://localhost:8000/v1/completions \
 > [!WARNING]
 > 405B 模型的内存空间不足以供生产使用。
 
-下载量化 405B 模型仅用于测试目的。
+下载量化 405B 模型仅用于测试目的。在头节点容器内运行，使缓存落到挂载的 HF 目录中。
 
 ```bash
-## On Node 1, download quantized model
-huggingface-cli download hugging-quants/Meta-Llama-3.1-405B-Instruct-AWQ-INT4
+docker exec -it $VLLM_CONTAINER /bin/bash -c '
+  hf download hugging-quants/Meta-Llama-3.1-405B-Instruct-AWQ-INT4'
 ```
 
-<a id="step-11-optional-launch-405b-inference-server"></a>
-### 步骤 11.（可选）启动 405B 推理服务器
+## 步骤 11.（可选）启动 405B 推理服务器
 
 使用大型模型的内存受限参数启动服务器。
 
 ```bash
 ## On Node 1, launch with restricted parameters
-export VLLM_CONTAINER=$(docker ps --format '{{.Names}}' | grep -E '^node-[0-9]+$')
 docker exec -it $VLLM_CONTAINER /bin/bash -c '
   vllm serve hugging-quants/Meta-Llama-3.1-405B-Instruct-AWQ-INT4 \
     --tensor-parallel-size 2 --max-model-len 64 --gpu-memory-utilization 0.9 \
-    --max-num-seqs 1 --max_num_batched_tokens 64'
+    --max-num-seqs 1 --max-num-batched-tokens 64 \
+    --distributed-executor-backend ray'
+```
+
+405B 启动很慢——预计两个节点上会有几分钟的模型加载日志。当你看到以下内容时，服务器即可接收流量：
+
+```
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 ```
 
 ## 步骤 12.（可选）测试 405B 模型推理
 
-使用受限参数验证 405B 部署。
+使用受限参数验证 405B 部署。与步骤 9 一样，在节点 1 上运行，或者从外部客户端将 `localhost` 替换为节点 1 的可达 IP。
 
 ```bash
 curl http://localhost:8000/v1/completions \
@@ -403,32 +465,31 @@ curl http://localhost:8000/v1/completions \
 
 ```bash
 ## Check Ray cluster health
-export VLLM_CONTAINER=$(docker ps --format '{{.Names}}' | grep -E '^node-[0-9]+$')
 docker exec $VLLM_CONTAINER ray status
 
 ## Verify server health endpoint
-curl http://192.168.100.10:8000/health
+curl http://localhost:8000/health
 
-## Monitor GPU utilization on both nodes
+## Monitor GPU utilization on both nodes (DGX Spark has unified memory,
+## so the --query-gpu memory fields report N/A; use raw nvidia-smi instead).
 nvidia-smi
-export VLLM_CONTAINER=$(docker ps --format '{{.Names}}' | grep -E '^node-[0-9]+$')
-docker exec $VLLM_CONTAINER nvidia-smi --query-gpu=memory.used,memory.total --format=csv
 ```
 
 ## 步骤 14. 后续步骤
 
-访问 Ray 仪表板进行集群监控并探索其他功能：
+Ray 仪表板运行在头节点的 8265 端口上。它绑定到容器的网络（主机网络），因此只能从节点 1 本机直接访问。要从外部工作站访问，请通过 SSH 建立隧道：
 
 ```bash
-## Ray dashboard available at:
-http://<head-node-ip>:8265
-
-## Consider implementing for production:
-## - Health checks and automatic restarts
-## - Log rotation for long-running services
-## - Persistent model caching across restarts
-## - Alternative quantization methods (FP8, INT4)
+## From your workstation:
+ssh -L 8265:localhost:8265 nvidia@<NODE_1_IP>
+## then open http://localhost:8265 in a local browser
 ```
+
+生产环境可考虑：
+- 健康检查和自动重启
+- 长时间运行服务的日志轮转
+- 跨重启的持久化模型缓存
+- 其他量化方法（FP8、INT4）
 
 <a id="run-on-multiple-sparks-through-a-switch"></a>
 ## 通过交换机在多个 Spark 上运行
@@ -450,7 +511,7 @@ http://<head-node-ip>:8265
 
 ```bash
 ## Download on all nodes
-wget https://raw.githubusercontent.com/vllm-project/vllm/refs/heads/main/examples/online_serving/run_cluster.sh
+wget https://raw.githubusercontent.com/vllm-project/vllm/refs/heads/main/examples/ray_serving/run_cluster.sh
 chmod +x run_cluster.sh
 ```
 
@@ -600,8 +661,6 @@ curl http://localhost:8000/health
 
 ## Monitor GPU utilization on all nodes
 nvidia-smi
-export VLLM_CONTAINER=$(docker ps --format '{{.Names}}' | grep -E '^node-[0-9]+$')
-docker exec $VLLM_CONTAINER nvidia-smi --query-gpu=memory.used,memory.total --format=csv
 ```
 
 ## 步骤 11. 后续步骤
@@ -619,6 +678,95 @@ http://<head-node-ip>:8265
 ## - Other models which can fit on the cluster with different quantization methods (FP8, NVFP4)
 ```
 
+<a id="run-agent-ready-qwen36-35b-model-with-vllm"></a>
+## 使用 vLLM 运行 Agent Ready Qwen3.6 35B 模型
+
+## 步骤 1. 配置 Docker 权限
+
+要在不使用 sudo 的情况下轻松管理容器，您必须位于 `docker` 组中。如果您选择跳过此步骤，则需要使用 sudo 运行 Docker 命令。
+
+打开新终端并测试 Docker 访问。在终端中，运行：
+```bash
+docker ps
+```
+
+如果您看到权限被拒绝错误（例如尝试连接到 Docker 守护进程套接字时权限被拒绝），请将您的用户添加到 docker 组，这样您就不需要使用 sudo 运行命令。
+
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+## 步骤 2. 拉取 vLLM 容器映像
+
+```bash
+docker pull vllm/vllm-openai:nightly-aarch64
+```
+
+## 步骤 3. 启动 Agent Ready Qwen3.6 35B 服务器
+
+启动容器并使用 agent-ready 的 `nvidia/Qwen3.6-35B-A3B-NVFP4` 配方启动 vLLM 服务器。`vllm/vllm-openai` 映像的入口点是 `vllm serve`，因此模型标识和参数直接作为容器参数传入。
+
+```bash
+## HuggingFace token (required to download the model)
+## Get a token from https://huggingface.co/settings/tokens
+export HF_TOKEN="your_huggingface_token"
+
+docker run -it --gpus all -p 8000:8000 \
+  -e HF_TOKEN="$HF_TOKEN" \
+  -v ~/.cache/huggingface:/root/.cache/huggingface \
+  vllm/vllm-openai:nightly-aarch64 \
+  nvidia/Qwen3.6-35B-A3B-NVFP4 \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --tensor-parallel-size 1 \
+  --trust-remote-code \
+  --kv-cache-dtype fp8 \
+  --attention-backend flashinfer \
+  --moe-backend marlin \
+  --gpu-memory-utilization 0.4 \
+  --max-model-len 262144 \
+  --max-num-seqs 4 \
+  --max-num-batched-tokens 8192 \
+  --enable-chunked-prefill \
+  --async-scheduling \
+  --enable-prefix-caching \
+  --speculative-config '{"method":"mtp","num_speculative_tokens":3,"moe_backend":"triton"}' \
+  --load-format fastsafetensors \
+  --reasoning-parser qwen3 \
+  --tool-call-parser qwen3_xml \
+  --enable-auto-tool-choice
+```
+
+预期输出应包括：
+- 模型加载确认
+- 服务器在端口 8000 上启动
+- GPU内存分配详细信息
+
+在另一个终端中，测试服务器：
+
+```bash
+curl http://localhost:8000/v1/chat/completions \
+-H "Content-Type: application/json" \
+-d '{
+    "model": "nvidia/Qwen3.6-35B-A3B-NVFP4",
+    "messages": [{"role": "user", "content": "12*17"}],
+    "max_tokens": 500
+}'
+```
+
+预期响应应包含 `"content": "204"` 或类似的数学计算。
+
+
+## 步骤 4. 清理和回滚
+
+对于容器方法（非破坏性）：
+
+```bash
+docker rm $(docker ps -aq --filter ancestor=vllm/vllm-openai:nightly-aarch64)
+docker rmi vllm/vllm-openai:nightly-aarch64
+```
+
 <a id="troubleshooting"></a>
 ## 故障排查
 ## 在单个 Spark 上运行的常见问题
@@ -628,6 +776,7 @@ http://<head-node-ip>:8265
 | CUDA版本不匹配错误 | CUDA工具包版本错误 | 使用精确安装程序重新安装 CUDA 12.9 |
 | 容器注册表身份验证失败 | GitLab 令牌无效或过期 | 生成新的身份验证令牌 |
 | SM_121a 架构无法识别 | 缺少 LLVM 补丁 | 验证应用于 LLVM 源的 SM_121a 补丁 |
+| CUDA 内存不足 | GPU显存不足 | 减少 --max-model-len 和 --max-num-seqs 参数 |
 
 ## 在两台 Spark 上运行的常见问题
 | 症状 | 原因 | 使固定 |
@@ -636,7 +785,7 @@ http://<head-node-ip>:8265
 | 无法访问 URL 的门禁仓库 | 某些 Hugging Face 模型的访问受到限制 | 重新生成你的 [Hugging Face token](https://huggingface.co/docs/hub/en/security-tokens);并请求在您的网络浏览器上访问 [gated model](https://huggingface.co/docs/hub/en/models-gated#customize-requested-information) |
 | 模型下载失败 | 身份验证或网络问题 | 重新运行 `huggingface-cli login`，检查互联网访问情况 |
 | 无法访问 URL 的门禁仓库 | 某些 Hugging Face 模型的访问受到限制 | 重新生成您的 Hugging Face 令牌；并请求在您的网络浏览器上访问门控模型 |
-| CUDA 内存不足，405B | GPU显存不足 | 使用70B模型或减少max_model_len参数 |
+| CUDA 内存不足 | GPU显存不足 | 减少 --max-model-len 和 --max-num-seqs 参数 |
 | 容器启动失败 | 缺少 ARM64 映像 | 按照 ARM64 指令重建 vLLM 映像 |
 
 > [!NOTE]

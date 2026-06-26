@@ -1,14 +1,13 @@
 # CLI Coding Agent
 
-> 在 DGX Spark 上使用 Ollama 运行本地编码模型，并连接你选择的 CLI coding agent（Claude Code、OpenCode 或 Codex CLI）
+> 使用 Ollama 构建本地 CLI 编码 agent
 
 ## 目录
 
 - [概述](#overview)
-- [操作步骤](#instructions)
-  - [选项 A：Claude Code](#option-a-claude-code)
-  - [选项 B：OpenCode](#option-b-opencode)
-  - [选项 C：Codex CLI](#option-c-codex-cli)
+- [Claude Code](#claude-code)
+- [OpenCode](#opencode)
+- [Codex CLI](#codex-cli)
 - [故障排查](#troubleshooting)
 
 ---
@@ -22,7 +21,7 @@
 
 ## 选择你的 CLI agent
 
-根据你想使用的 CLI agent 选择对应的章节：
+选择与你想使用的 CLI agent 相对应的标签页：
 
 - **Claude Code**：以最快路径让本地 Ollama 模型搭配可用的 CLI agent 跑起来。
 - **OpenCode**：直接通过 Ollama 启动的开源 CLI。
@@ -59,19 +58,10 @@
 * **最近更新**：2026/04/16
   * 切换到 `ollama launch` 方式，并将默认模型升级为 Qwen3.6
 
----
+<a id="claude-code"></a>
+## Claude Code
 
-<a id="instructions"></a>
-## 操作步骤
-
-下方分别给出三种 CLI agent 的完整流程。前 4 步（环境确认、安装 Ollama、拉取模型、可选的本地推理测试）在三种选项中是一致的，只有从第 5 步开始的启动命令和后续操作不同。请根据需要选择其中一节执行。
-
----
-
-<a id="option-a-claude-code"></a>
-### 选项 A：Claude Code
-
-#### 步骤 1. 确认你的环境
+## 步骤 1. 确认你的环境
 
 **说明**：在安装任何东西之前，先确认操作系统版本和 GPU 是否可见。
 
@@ -82,7 +72,7 @@ nvidia-smi
 
 预期输出应显示 Ubuntu 24.04.3 LTS（DGX OS 7.3.1 基础）以及检测到的 GPU。
 
-#### 步骤 2. 安装或升级 Ollama
+## 步骤 2. 安装或升级 Ollama
 
 **说明**：安装 [Ollama](https://ollama.com/download)，或者确保版本足够新以支持 [`ollama launch`](https://ollama.com/blog/launch)。
 
@@ -99,7 +89,7 @@ ollama --version
 
 预期输出应显示 Ollama v0.15 或更新版本。
 
-#### 步骤 3. 拉取 Qwen3.6
+## 步骤 3. 拉取 Qwen3.6
 
 **说明**：将 [Qwen3.6](https://ollama.com/library/qwen3.6) 模型权重下载到你的 Spark 节点上。
 
@@ -117,7 +107,7 @@ ollama pull qwen3.6:35b-a3b-bf16    # Full precision (~71GB)
 
 预期输出应在 `ollama list` 中显示 `qwen3.6`（以及任何可选变体）。
 
-#### 步骤 4. 测试本地推理（可选）
+## 步骤 4. 测试本地推理（可选）
 
 **说明**：通过一个简短的提示词来确认模型可以加载。
 
@@ -133,17 +123,28 @@ Write a short README checklist for a Python project.
 
 预期输出应显示模型在终端中作出回复。完成后，输入 `/bye` 或按 `Ctrl+D` 退出交互式会话，然后再继续。
 
-#### 步骤 5. 通过 Ollama 启动 Claude Code
+## 步骤 5. 安装并通过 Ollama 启动 Claude Code
 
-**说明**：使用 Ollama 内置的[启动方式](https://ollama.com/blog/launch)，将 [Claude Code](https://docs.claude.com/en/docs/claude-code) 对接到你的本地模型。无需配置任何环境变量或配置文件。
+**说明**：先安装 [Claude Code](https://docs.claude.com/en/docs/claude-code)，然后使用 Ollama 内置的[启动方式](https://ollama.com/blog/launch)，将 Claude Code 对接到你的本地模型。无需配置任何环境变量或配置文件。
 
 ```bash
-ollama launch claude
+curl -fsSL https://claude.ai/install.sh | bash
+claude --version
+```
+
+如果 Claude Code 已安装，只需确认版本：
+
+```bash
+claude --version
+```
+
+```bash
+ollama launch claude --model qwen3.6
 ```
 
 预期输出应显示 Claude Code 启动并使用本地的 Qwen3.6 模型。Qwen3.6 默认提供 256K 上下文窗口；如需进一步调整，可通过 Ollama 的设置来调节上下文长度。
 
-#### 步骤 6. 完成一个小型编码任务
+## 步骤 6. 完成一个小型编码任务
 
 **说明**：创建一个小仓库，让 Claude Code 实现一个函数及对应的测试。
 
@@ -158,7 +159,9 @@ printf 'import math_utils\n\n\ndef test_add():\n    assert math_utils.add(1, 2) 
 如果你还没有安装 pytest：
 
 ```bash
-python -m pip install -U pytest
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -U pytest
 ```
 
 在 Claude Code 中：
@@ -170,12 +173,12 @@ Please implement add() in math_utils.py and make sure the test passes.
 运行测试：
 
 ```bash
-python -m pytest -q
+python3 -m pytest -q
 ```
 
-预期输出应显示测试通过。
+预期输出应显示测试通过。完成后，运行 `deactivate` 退出虚拟环境。
 
-#### 步骤 7. 清理与回滚
+## 步骤 7. 清理与回滚
 
 **说明**：如果你不再需要这些组件，可以删除模型并停止服务。
 
@@ -192,18 +195,16 @@ sudo systemctl stop ollama
 ollama rm qwen3.6
 ```
 
-#### 步骤 8. 后续可尝试
+## 步骤 8. 后续可尝试
 
 - 试试 `qwen3.6:35b-a3b-nvfp4` 或 `bf16` 变体，以体验不同的质量/显存权衡
 - 在多文件重构或测试生成等任务中使用 Claude Code
 - 在更大的代码库上充分利用完整的 256K 上下文窗口
 
----
+<a id="opencode"></a>
+## OpenCode
 
-<a id="option-b-opencode"></a>
-### 选项 B：OpenCode
-
-#### 步骤 1. 确认你的环境
+## 步骤 1. 确认你的环境
 
 **说明**：在安装任何东西之前，先确认操作系统版本和 GPU 是否可见。
 
@@ -214,7 +215,7 @@ nvidia-smi
 
 预期输出应显示 Ubuntu 24.04.3 LTS（DGX OS 7.3.1 基础）以及检测到的 GPU。
 
-#### 步骤 2. 安装或升级 Ollama
+## 步骤 2. 安装或升级 Ollama
 
 **说明**：安装 [Ollama](https://ollama.com/download)，或者确保版本足够新以支持 [`ollama launch`](https://ollama.com/blog/launch)。
 
@@ -231,7 +232,7 @@ ollama --version
 
 预期输出应显示 Ollama v0.15 或更新版本。
 
-#### 步骤 3. 拉取 Qwen3.6
+## 步骤 3. 拉取 Qwen3.6
 
 **说明**：将 [Qwen3.6](https://ollama.com/library/qwen3.6) 模型权重下载到你的 Spark 节点上。
 
@@ -249,7 +250,7 @@ ollama pull qwen3.6:35b-a3b-bf16    # Full precision (~71GB)
 
 预期输出应在 `ollama list` 中显示 `qwen3.6`。
 
-#### 步骤 4. 测试本地推理（可选）
+## 步骤 4. 测试本地推理（可选）
 
 **说明**：通过一个简短的提示词来确认模型可以加载。
 
@@ -265,12 +266,12 @@ Write a short README checklist for a Python project.
 
 预期输出应显示模型作出回复。完成后，输入 `/bye` 或按 `Ctrl+D` 退出，然后再继续。
 
-#### 步骤 5. 通过 Ollama 启动 OpenCode
+## 步骤 5. 通过 Ollama 启动 OpenCode
 
 **说明**：使用 Ollama 内置的[启动方式](https://ollama.com/blog/launch)，将 [OpenCode](https://opencode.ai) 对接到你的本地模型。无需配置 [`opencode.json`](https://opencode.ai/docs/config/) 中的 provider。
 
 ```bash
-ollama launch opencode
+ollama launch opencode --model qwen3.6
 ```
 
 如果你想预先配置 OpenCode 而不立即启动：
@@ -281,7 +282,7 @@ ollama launch opencode --config
 
 预期输出应显示 OpenCode 启动，并已自动选定 Ollama 作为 provider、Qwen3.6 作为模型。Qwen3.6 默认提供 256K 上下文窗口。
 
-#### 步骤 6. 完成一个小型编码任务
+## 步骤 6. 完成一个小型编码任务
 
 **说明**：创建一个小仓库，让 OpenCode 实现一个函数及对应的测试。
 
@@ -296,7 +297,9 @@ printf 'import math_utils\n\n\ndef test_add():\n    assert math_utils.add(1, 2) 
 如果你还没有安装 pytest：
 
 ```bash
-python -m pip install -U pytest
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -U pytest
 ```
 
 在 OpenCode 中：
@@ -308,12 +311,12 @@ Please implement add() in math_utils.py and make sure the test passes.
 运行测试：
 
 ```bash
-python -m pytest -q
+python3 -m pytest -q
 ```
 
-预期输出应显示测试通过。
+预期输出应显示测试通过。完成后，运行 `deactivate` 退出虚拟环境。
 
-#### 步骤 7. 清理与回滚
+## 步骤 7. 清理与回滚
 
 **说明**：如果你不再需要这些组件，可以删除模型并停止服务。
 
@@ -330,18 +333,16 @@ sudo systemctl stop ollama
 ollama rm qwen3.6
 ```
 
-#### 步骤 8. 后续可尝试
+## 步骤 8. 后续可尝试
 
 - 试试 `qwen3.6:35b-a3b-nvfp4` 或 `bf16` 变体，以体验不同的质量/显存权衡
 - 在多文件改动或测试生成等任务中使用 OpenCode
 - 在更大的代码库上充分利用完整的 256K 上下文窗口
 
----
+<a id="codex-cli"></a>
+## Codex CLI
 
-<a id="option-c-codex-cli"></a>
-### 选项 C：Codex CLI
-
-#### 步骤 1. 确认你的环境
+## 步骤 1. 确认你的环境
 
 **说明**：在安装任何东西之前，先确认操作系统版本和 GPU 是否可见。
 
@@ -352,7 +353,7 @@ nvidia-smi
 
 预期输出应显示 Ubuntu 24.04.3 LTS（DGX OS 7.3.1 基础）以及检测到的 GPU。
 
-#### 步骤 2. 安装或升级 Ollama
+## 步骤 2. 安装或升级 Ollama
 
 **说明**：安装 [Ollama](https://ollama.com/download)，或者确保版本足够新以支持 [`ollama launch`](https://ollama.com/blog/launch)。
 
@@ -369,7 +370,7 @@ ollama --version
 
 预期输出应显示 Ollama v0.15 或更新版本。
 
-#### 步骤 3. 拉取 Qwen3.6
+## 步骤 3. 拉取 Qwen3.6
 
 **说明**：将 [Qwen3.6](https://ollama.com/library/qwen3.6) 模型权重下载到你的 Spark 节点上。
 
@@ -387,7 +388,7 @@ ollama pull qwen3.6:35b-a3b-bf16    # Full precision (~71GB)
 
 预期输出应在 `ollama list` 中显示 `qwen3.6`。
 
-#### 步骤 4. 测试本地推理（可选）
+## 步骤 4. 测试本地推理（可选）
 
 **说明**：通过一个简短的提示词来确认模型可以加载。
 
@@ -403,17 +404,17 @@ Write a short README checklist for a Python project.
 
 预期输出应显示模型作出回复。完成后，输入 `/bye` 或按 `Ctrl+D` 退出，然后再继续。
 
-#### 步骤 5. 通过 Ollama 启动 Codex CLI
+## 步骤 5. 通过 Ollama 启动 Codex CLI
 
 **说明**：使用 Ollama 内置的[启动方式](https://ollama.com/blog/launch)，将 [Codex CLI](https://github.com/openai/codex) 对接到你的本地模型。不需要 `~/.codex/config.toml`，也不需要手动执行 `npm install -g @openai/codex` —— Ollama 会负责 Codex 的集成。
 
 ```bash
-ollama launch codex
+ollama launch codex --model qwen3.6
 ```
 
 预期输出应显示 Codex CLI 启动，并以 Ollama 为 provider、Qwen3.6 为模型。Qwen3.6 默认提供 256K 上下文窗口，非常适合 Codex 的智能体式工作流。
 
-#### 步骤 6. 完成一个小型编码任务
+## 步骤 6. 完成一个小型编码任务
 
 **说明**：创建一个小仓库，让 Codex 实现一个函数及对应的测试。
 
@@ -428,7 +429,9 @@ printf 'import math_utils\n\n\ndef test_add():\n    assert math_utils.add(1, 2) 
 如果你还没有安装 pytest：
 
 ```bash
-python -m pip install -U pytest
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -U pytest
 ```
 
 在 Codex 中：
@@ -440,12 +443,12 @@ Please implement add() in math_utils.py and make sure the test passes.
 运行测试：
 
 ```bash
-python -m pytest -q
+python3 -m pytest -q
 ```
 
-预期输出应显示测试通过。
+预期输出应显示测试通过。完成后，运行 `deactivate` 退出虚拟环境。
 
-#### 步骤 7. 清理与回滚
+## 步骤 7. 清理与回滚
 
 **说明**：如果你不再需要这些组件，可以删除模型并停止服务。
 
@@ -462,13 +465,11 @@ sudo systemctl stop ollama
 ollama rm qwen3.6
 ```
 
-#### 步骤 8. 后续可尝试
+## 步骤 8. 后续可尝试
 
 - 试试 `qwen3.6:35b-a3b-nvfp4` 或 `bf16` 变体，以体验不同的质量/显存权衡
 - 在多文件改动或测试生成等任务中使用 Codex CLI
 - 在更大的代码库上充分利用完整的 256K 上下文窗口
-
----
 
 <a id="troubleshooting"></a>
 ## 故障排查
@@ -482,6 +483,10 @@ ollama rm qwen3.6
 | 连接 localhost:11434 时 `connection refused` | Ollama 服务未运行 | 通过 `ollama serve` 启动，或使用 `sudo systemctl start ollama` |
 | `ollama launch <agent>` 立即退出 | Agent 集成初始化失败 | 重新执行 `ollama launch <agent>`；如果问题仍然存在，请查看 `journalctl -u ollama` |
 | 响应缓慢或出现 OOM 错误 | 选用的模型变体超出了 GPU 显存 | 切换到 `qwen3.6:35b-a3b-nvfp4`，或关闭其他占用 GPU 的工作负载 |
+| `python3 -m pip install -U pytest` 报错 `externally-managed-environment` | Ubuntu 24.04 对系统 Python 环境进行了保护 | 先创建并激活虚拟环境：`python3 -m venv .venv && source .venv/bin/activate` |
+| `ollama pull` 提示某个模型标签是分片 GGUF（sharded GGUF） | 所选模型标签不受 Ollama 支持 | 改用步骤 3 中的 Qwen3.6 命令，而不要使用分片 GGUF 标签 |
+| 在多 GPU 系统上 `ollama run` 报错 `CUDA error: context is destroyed` | Ollama 正在跨混合 GPU 拓扑进行初始化 | 将 Ollama 固定到单个 GPU。前台测试可运行 `CUDA_VISIBLE_DEVICES=0 ollama serve`；作为系统服务时，在 Ollama 的 systemd drop-in 中添加 `Environment="CUDA_VISIBLE_DEVICES=0"` 并重启 Ollama |
+| 使用 Anthropic 兼容的 Ollama 端点直接配置 Claude Code 时，模型只输出文字却不修改文件 | 某些模型/服务端组合无法可靠地发出工具调用（tool call） | 按本 playbook 所示，使用 `ollama launch claude` 搭配 Qwen3.6 |
 
 > [!NOTE]
 > DGX Spark 采用统一内存架构（UMA），可以让 GPU 与 CPU 之间动态共享内存。

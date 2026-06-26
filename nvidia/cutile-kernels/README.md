@@ -1,15 +1,29 @@
 # cuTile Kernels
 
-> 在 DGX Spark 上使用 cuTile 高性能 GPU kernel 与 TileGym 基准套件
+> 在 DGX Spark 与 B300 上运行 cuTile kernel 基准测试、FMHA 实现与 LLM 推理
 
 ## 目录
 
 - [概述](#overview)
-- [操作步骤](#instructions)
-  - [Kernel Benchmarks 工作流](#kernel-benchmarks)
-  - [End-to-End Inference 工作流](#e2e-inference)
-  - [FMHA Implementation Guide](#fmha)
-- [性能对比](#performance-comparison)
+- [Kernel Benchmarks](#kernel-benchmarks)
+- [End-to-End Inference](#end-to-end-inference)
+- [FMHA Implementation](#fmha-implementation)
+  - [Attention 基础](#attention-basics)
+  - [Flash Attention 算法](#flash-attention-algorithm)
+  - [cuTile 伪代码 → 实际映射](#cutile-pseudocode-actual-mapping)
+  - [Kernel 伪代码](#kernel-pseudocode)
+  - [cuTile 实现](#cutile-implementation)
+  - [启动 Kernel](#launching-the-kernel)
+  - [优化技巧](#optimizations)
+  - [平台配置](#platform-configuration)
+  - [性能结果](#performance-results)
+  - [常见问题](#common-issues)
+  - [配套脚本](#companion-scripts)
+  - [参考资料](#references)
+- [Platform Comparison](#platform-comparison)
+  - [端到端吞吐](#end-to-end-throughput)
+  - [CUDA Kernel 时间](#cuda-kernel-time)
+  - [cuTile Kernel 拆解](#cutile-kernel-breakdown)
 - [故障排查](#troubleshooting)
 
 ---
@@ -23,8 +37,8 @@
 
 本 playbook 涵盖三种工作流：
 1. **[Kernel Benchmarks](#kernel-benchmarks)** —— 运行独立的 cuTile kernel 基准测试（FMHA、MatMul、RMSNorm 等）
-2. **[End-to-End Inference](#e2e-inference)** —— 通过 monkey-patching 的方式，使用 cuTile 优化的 kernel 运行 LLM 推理
-3. **[FMHA Implementation](#fmha)** —— 一步步从伪代码到优化后的 cuTile，构建一个 Flash Multi-Head Attention kernel 的实战教程，并附带可运行和基准测试的脚本
+2. **[End-to-End Inference](#end-to-end-inference)** —— 通过 monkey-patching 的方式，使用 cuTile 优化的 kernel 运行 LLM 推理
+3. **[FMHA Implementation](#fmha-implementation)** —— 一步步从伪代码到优化后的 cuTile，构建一个 Flash Multi-Head Attention kernel 的实战教程，并附带可运行和基准测试的脚本
 
 同一份 cuTile 代码可以同时在 DGX Spark（sm_121）和 B300（sm_103）上运行——cuTile 会在 JIT 编译时自动适配对应的 GPU 架构。
 
@@ -108,19 +122,19 @@ newgrp docker
   * 大文件下载可能因网络问题失败
   * 首次运行包含 JIT 编译开销
 * **回滚：** 移除 Docker 容器即可撤销所有更改
-* **最后更新：** 2026 年 2 月
-  * 首次发布
-
-<a id="instructions"></a>
-## 操作步骤
+* **最后更新：** 2026 年 6 月 16 日
+  * 将 CUDA 容器升级至 13.2.0-devel-ubuntu22.04
+  * 将 Nsight Systems 升级至 2025.1.3
+  * 新增为 TileGym 准备 Docker 的步骤
+  * 将 TileGym 固定到 v1.3.0
 
 <a id="kernel-benchmarks"></a>
-### Kernel Benchmarks 工作流
+## Kernel Benchmarks 工作流
 
 ## 步骤 1. 拉取带 CTK 13.x 的 CUDA NGC 容器
 
 ```bash
-docker pull nvcr.io/nvidia/cuda:13.1-devel-ubuntu24.04
+docker pull nvcr.io/nvidia/cuda:13.2.0-devel-ubuntu22.04
 ```
 
 启动一个具备 GPU 访问权限的交互式会话：
@@ -128,18 +142,26 @@ docker pull nvcr.io/nvidia/cuda:13.1-devel-ubuntu24.04
 ```bash
 docker run --gpus all -it --rm \
   -v ~/TileGym:/workspace/TileGym \
-  nvcr.io/nvidia/cuda:13.1-devel-ubuntu24.04 \
+  nvcr.io/nvidia/cuda:13.2.0-devel-ubuntu22.04 \
   /bin/bash
 ```
 
 > [!NOTE]
 > `-v` 参数将本地目录挂载到容器内，从而持久化保存 TileGym 仓库。`--rm` 参数会在退出时自动移除容器；如果你希望之后还能继续使用该容器，可以省略此参数。
 
-如果不在容器中运行，也可以直接安装 Tile IR：
+为安装 TileGym 准备容器。
 
 ```bash
-# 需要 root 权限——使用 sudo 或以 root 身份运行
-sudo apt-get install cuda-tile-ir-13-1 cuda-compiler-13-1
+apt-get update && apt-get install -y --no-install-recommends \
+    python3-pip python3-dev python-is-python3 \
+    git wget curl build-essential nsight-systems-2025.1.3
+update-alternatives --install /usr/bin/nsys nsys /opt/nvidia/nsight-systems/2025.1.3/bin/nsys 100 && hash -r
+python -m pip install --upgrade pip setuptools wheel
+
+pip install --no-cache-dir --pre "torch==2.9.1" --index-url https://download.pytorch.org/whl/cu130
+
+pip install --no-cache-dir --no-deps accelerate==1.13.0 && \
+    pip install --no-cache-dir sentencepiece protobuf
 ```
 
 ## 步骤 2. 克隆 TileGym 仓库
@@ -147,18 +169,32 @@ sudo apt-get install cuda-tile-ir-13-1 cuda-compiler-13-1
 ```bash
 git clone https://github.com/NVIDIA/TileGym
 cd TileGym
+git checkout v1.3.0
 pip install .
 ```
 
-## 步骤 3. 运行基准套件
+## 步骤 3. 运行单独的基准测试
+
+如需运行某个 kernel 的基准测试：
 
 ```bash
 cd tests/benchmark/
-bash run_all.sh
-```
 
-> [!NOTE]
-> 基准测试按顺序运行，以确保计时结果准确。完成所有 kernel 可能需要 10-15 分钟。
+# Flash Multi-Head Attention
+python bench_fused_attention.py
+
+# 矩阵乘法
+python bench_matrix_multiplication.py
+
+# RMSNorm
+python bench_rmsnorm.py
+
+# RoPE
+python bench_rope.py
+
+# SwiGLU
+python bench_swiglu.py
+```
 
 ## 步骤 4. 查看结果
 
@@ -180,26 +216,15 @@ fused-attention-batch4-head32-d128-fwd-causal=True-float16-TFLOPS:
 ✓ PASSED: bench_fused_attention.py
 ```
 
-## 步骤 5. 运行单独的基准测试
-
-如需运行某个 kernel 的基准测试：
+## 步骤 5. 运行基准套件
 
 ```bash
-# Flash Multi-Head Attention
-python bench_fused_attention.py
-
-# 矩阵乘法
-python bench_matrix_multiplication.py
-
-# RMSNorm
-python bench_rmsnorm.py
-
-# RoPE
-python bench_rope.py
-
-# SwiGLU
-python bench_swiglu.py
+cd tests/benchmark/
+bash run_all.sh
 ```
+
+> [!NOTE]
+> 不推荐：基准测试按顺序运行，以确保计时结果准确。完成所有 kernel 可能需要 40-60 分钟。
 
 ## 步骤 6. 清理
 
@@ -213,7 +238,7 @@ exit
 
 ```bash
 # 推荐：仅移除来自该工作流镜像的容器
-docker rm $(docker ps -a --filter ancestor=nvcr.io/nvidia/cuda:13.1-devel-ubuntu24.04 --format '{{.ID}}')
+docker ps -a --filter ancestor=nvcr.io/nvidia/cuda:13.2.0-devel-ubuntu22.04 -q | xargs -r docker rm
 
 # 备选：清理所有已停止的容器（会提示确认）
 # docker container prune
@@ -222,15 +247,15 @@ docker rm $(docker ps -a --filter ancestor=nvcr.io/nvidia/cuda:13.1-devel-ubuntu
 移除镜像（可选）：
 
 ```bash
-docker rmi nvcr.io/nvidia/cuda:13.1-devel-ubuntu24.04
+docker rmi nvcr.io/nvidia/cuda:13.2.0-devel-ubuntu22.04
 ```
 
 ## 步骤 7. 在 B300 上重复
 
-在 B300 硬件上重复步骤 1-6，以观察性能扩展。预期的扩展结果请见 **性能对比** 章节。
+在 B300 硬件上重复步骤 1-6，以观察性能扩展。预期的扩展结果请见 **Platform Comparison** 章节。
 
-<a id="e2e-inference"></a>
-### End-to-End Inference 工作流
+<a id="end-to-end-inference"></a>
+## End-to-End Inference 工作流
 
 ## 步骤 1. 配置环境
 
@@ -241,6 +266,8 @@ docker rmi nvcr.io/nvidia/cuda:13.1-devel-ubuntu24.04
 ```bash
 mkdir -p ~/TileGym
 git clone https://github.com/NVIDIA/TileGym ~/TileGym
+cd ~/TileGym
+git checkout v1.3.0
 ```
 
 然后启动容器并挂载该仓库：
@@ -249,12 +276,27 @@ git clone https://github.com/NVIDIA/TileGym ~/TileGym
 docker run --gpus all -it --rm \
   -v ~/TileGym:/workspace/TileGym \
   -v ~/.cache/huggingface:/root/.cache/huggingface \
-  nvcr.io/nvidia/cuda:13.1-devel-ubuntu24.04 \
+  nvcr.io/nvidia/cuda:13.2.0-devel-ubuntu22.04 \
   /bin/bash
 ```
 
 > [!NOTE]
 > `-v ~/.cache/huggingface:/root/.cache/huggingface` 用于挂载 HuggingFace 缓存，避免重复下载模型。
+
+为安装 TileGym 准备容器：
+
+```bash
+apt-get update && apt-get install -y --no-install-recommends \
+    python3-pip python3-dev python-is-python3 \
+    git wget curl build-essential nsight-systems-2025.1.3
+update-alternatives --install /usr/bin/nsys nsys /opt/nvidia/nsight-systems/2025.1.3/bin/nsys 100 && hash -r
+python -m pip install --upgrade pip setuptools wheel
+
+pip install --no-cache-dir --pre "torch==2.9.1" --index-url https://download.pytorch.org/whl/cu130
+
+pip install --no-cache-dir --no-deps accelerate==1.13.0 && \
+    pip install --no-cache-dir sentencepiece protobuf
+```
 
 在容器内安装 TileGym：
 
@@ -277,7 +319,7 @@ export HF_TOKEN=<your_huggingface_token>
 进入 transformers 基准测试目录：
 
 ```bash
-cd modeling/transformers
+cd /workspace/TileGym/modeling/transformers
 ```
 
 **选项 A：运行 Qwen2-7B 基准测试**
@@ -422,15 +464,18 @@ def autotuned_kernel(A, B, C):
 
 在 B300 硬件上重复步骤 1-3。**同一份代码无需修改即可运行** —— cuTile 会自动针对 sm_103 进行 JIT 编译。
 
-详细的扩展结果请见 **性能对比** 章节。
+详细的扩展结果请见 **Platform Comparison** 章节。
 
-<a id="fmha"></a>
-### FMHA Implementation Guide
+<a id="fmha-implementation"></a>
+## FMHA Implementation
+
+## FMHA Implementation Guide
 
 > [!NOTE]
 > 这是一份理解 cuTile 中 FMHA 实现的指南，并非完整参考。完整文档请参阅 [cuTile Python Documentation](https://docs.nvidia.com/cuda/cutile-python/)。
 
-## Attention 基础
+<a id="attention-basics"></a>
+### Attention 基础
 
 Attention 让神经网络能够聚焦于输入中相关的部分。在 transformer（GPT、LLaMA、Qwen）中，每个位置都会通过三个向量计算它对其他每个位置的关注程度：
 
@@ -449,7 +494,8 @@ Shapes:
 
 对于自回归模型，**causal masking** 确保每个 token 只关注先前的 token —— 在 softmax 之前将未来位置的分数置为 -infinity。
 
-## Flash Attention 算法
+<a id="flash-attention-algorithm"></a>
+### Flash Attention 算法
 
 标准 attention 会显式构建一个 [seq_len × seq_len] 矩阵（例如 seq_len=32768 时为 2 GB）。Flash Attention 通过分块（tiles）配合 **online softmax** 来避免这一开销：
 
@@ -469,7 +515,8 @@ FOR each K,V tile:
 output = acc / l
 ```
 
-## cuTile 伪代码 → 实际映射
+<a id="cutile-pseudocode-actual-mapping"></a>
+### cuTile 伪代码 → 实际映射
 
 | 概念 | 伪代码 | cuTile |
 |---|---|---|
@@ -482,7 +529,8 @@ output = acc / l
 | 矩阵乘法 | `C = A @ B + C` | `ct.mma(A, B, C)` |
 | 归约 | `max_val = MAX(tile, axis)` | `ct.max(tile, axis, keepdims)` |
 
-## Kernel 伪代码
+<a id="kernel-pseudocode"></a>
+### Kernel 伪代码
 
 ```text
 KERNEL fmha(Q, K, V, Out, scale, TILE_M, TILE_N):
@@ -514,7 +562,8 @@ KERNEL fmha(Q, K, V, Out, scale, TILE_M, TILE_N):
     STORE(Out[batch, head, tile_row*TILE_M :, :], out)
 ```
 
-## cuTile 实现
+<a id="cutile-implementation"></a>
+### cuTile 实现
 
 ```python
 import cuda.tile as ct
@@ -575,7 +624,8 @@ def fmha_kernel(Q, K, V, Out, qk_scale: float, TILE_D: ConstInt, H: ConstInt,
     ct.store(Out, index=(batch_idx, head_idx, bid_x, 0), tile=acc)
 ```
 
-## 启动 Kernel
+<a id="launching-the-kernel"></a>
+### 启动 Kernel
 
 ```python
 def run_fmha(q, k, v, sm_scale, is_causal=True):
@@ -591,9 +641,10 @@ def run_fmha(q, k, v, sm_scale, is_causal=True):
     return out
 ```
 
-## 优化技巧
+<a id="optimizations"></a>
+### 优化技巧
 
-### exp2 + flush_to_zero
+#### exp2 + flush_to_zero
 
 `exp2(x) = 2^x` 在 GPU 上比 `exp(x)` 更快。需要把 scale 调整为乘以 `1/log(2)`。
 
@@ -613,7 +664,7 @@ p = ct.exp2(qk, flush_to_zero=True)
 alpha = ct.exp2(m_i - m_ij, flush_to_zero=True)  # Correction factor for previous acc/l_i
 ```
 
-### Load Order Transpose（加载时转置）
+#### Load Order Transpose（加载时转置）
 
 通过 `order` 参数在加载 K 时直接得到转置结果，避免显式的 permute。
 
@@ -625,7 +676,7 @@ k_t = ct.load(K, index=(..., 0, j), shape=(1,1,TILE_D,TILE_N),
               order=(0,1,3,2)).reshape((TILE_D, TILE_N))
 ```
 
-### Latency Hints（延迟提示）
+#### Latency Hints（延迟提示）
 
 预取数据，让内存加载与计算相互重叠。完整的 load/store 提示列表（如 `allow_tma`、`latency`）请参阅 [Performance Tuning 文档](https://docs.nvidia.com/cuda/cutile-python/performance.html)。
 
@@ -638,7 +689,7 @@ k_t = ct.load(K, ..., latency=2)    # Prefetch K 2 iterations ahead
 v_tile = ct.load(V, ..., latency=4) # Prefetch V 4 iterations ahead (used later in the loop)
 ```
 
-### Occupancy
+#### Occupancy
 
 允许每个 SM 上同时驻留多个 thread block，以隐藏内存延迟。`occupancy` 与寄存器、共享内存的相互关系详见 [Execution Model 文档](https://docs.nvidia.com/cuda/cutile-python/execution.html)。
 
@@ -650,7 +701,7 @@ v_tile = ct.load(V, ..., latency=4) # Prefetch V 4 iterations ahead (used later 
 def fmha_optimized(...):
 ```
 
-### Approximate Division（近似除法）
+#### Approximate Division（近似除法）
 
 在最终归一化阶段使用快速近似除法。
 
@@ -663,7 +714,8 @@ from cuda.tile import RoundingMode as RMd
 acc = ct.truediv(acc, l_i, flush_to_zero=True, rounding_mode=RMd.APPROX)
 ```
 
-## 平台配置
+<a id="platform-configuration"></a>
+### 平台配置
 
 同一份 kernel 代码可以在所有平台上运行，仅需修改配置参数。可使用 [`ct.ByTarget`](https://docs.nvidia.com/cuda/cutile-python/performance.html) 为不同架构选择取值，或使用 [`ct.autotune`](https://docs.nvidia.com/cuda/cutile-python/performance.html) 自动搜索候选取值。
 
@@ -691,11 +743,12 @@ def fmha_kernel(...):
     ...
 ```
 
-## 性能结果
+<a id="performance-results"></a>
+### 性能结果
 
 > **注意：** PyTorch SDPA 仅用于正确性验证，不用于性能对比。
 
-### DGX Spark (sm_121) – 序列长度 2048
+#### DGX Spark (sm_121) – 序列长度 2048
 
 | 步骤 | 优化 | 延迟 (ms) | TFLOPS |
 |---|---|---|---|
@@ -706,7 +759,7 @@ def fmha_kernel(...):
 | 5 | + Occupancy=2 | 1.73 | 79.5 |
 | 6 | + Approx Div (Final) | 1.69 | 81.1 |
 
-### B300 (sm_103) – 不同序列长度
+#### B300 (sm_103) – 不同序列长度
 
 | Seq Len | 延迟 (ms) | TFLOPS | 相对 Spark |
 |---|---|---|---|
@@ -716,7 +769,8 @@ def fmha_kernel(...):
 | 8192 | 1.897 | 1159 | 14.6x |
 | 16384 | 7.014 | 1254 | 14.2x |
 
-## 常见问题
+<a id="common-issues"></a>
+### 常见问题
 
 | 问题 | 解决方案 |
 |---|---|
@@ -725,7 +779,8 @@ def fmha_kernel(...):
 | 启用 causal 时结果不正确 | 检查 mask_start 的计算与 `offs_m >= offs_n` 的逻辑 |
 | 性能偏低 | 尝试不同的 TILE_M/N，检查 occupancy，确认 latency hint 是否生效 |
 
-## 配套脚本
+<a id="companion-scripts"></a>
+### 配套脚本
 
 以下脚本随本 playbook 一同提供，可在 DGX Spark 或 B300 上运行：
 
@@ -740,7 +795,8 @@ python assets/fmha_optimization_tutorial.py --correctness-check
 python assets/fmha_scaling_analysis.py --iterations 100
 ```
 
-## 参考资料
+<a id="references"></a>
+### 参考资料
 
 - [cuTile Python Documentation](https://docs.nvidia.com/cuda/cutile-python/)
 - [Tile IR Specification](https://docs.nvidia.com/cuda/tile-ir/)
@@ -748,8 +804,10 @@ python assets/fmha_scaling_analysis.py --iterations 100
 - [NVIDIA Blog: Tuning Flash Attention for Peak Performance in CUDA Tile](https://developer.nvidia.com/blog/tuning-flash-attention-for-peak-performance-in-nvidia-cuda-tile/)
 - [Flash Attention Paper](https://arxiv.org/abs/2205.14135)
 
-<a id="performance-comparison"></a>
-## 性能对比
+<a id="platform-comparison"></a>
+## Platform Comparison
+
+## DGX Spark 与 B300 性能对比
 
 本节汇总了 DGX Spark（GB10）与 B300 之间，在 kernel 基准与端到端 LLM 推理上的性能扩展表现。
 
@@ -773,19 +831,22 @@ python assets/fmha_scaling_analysis.py --iterations 100
 
 ## Qwen2-7B 性能
 
-## 端到端吞吐
+<a id="end-to-end-throughput"></a>
+### 端到端吞吐
 
 | 配置 | DGX Spark | B300 | 平台加速比 |
 |---------------|-----------|------|------------------|
 | **cuTile** | 18.52 tok/s | 257.33 tok/s | **13.9x** |
 
-## CUDA Kernel 时间
+<a id="cuda-kernel-time"></a>
+### CUDA Kernel 时间
 
 | 配置 | DGX Spark | B300 | 平台加速比 |
 |---------------|-----------|------|------------------|
 | **cuTile** | 43,080 ms | 2,954 ms | **14.6x** |
 
-## cuTile Kernel 拆解
+<a id="cutile-kernel-breakdown"></a>
+### cuTile Kernel 拆解
 
 **DGX Spark (GB10)：**
 
@@ -831,7 +892,7 @@ python assets/fmha_scaling_analysis.py --iterations 100
 | 首次运行较慢 | JIT 编译 | 正常现象 —— cuTile 在首次运行时会编译 kernel |
 | `FileNotFoundError: input_prompt_small.txt` | 缺少输入文件 | 在 `modeling/transformers` 目录下运行 |
 | `torch.cuda.OutOfMemoryError` | GPU 显存不足 | 减小 `--batch_size` 参数 |
-| `ImportError: cuda.tile` | 缺少 Tile IR | 安装：`apt-get install cuda-tile-ir-13-1` |
+| `ImportError: cuda.tile` | 缺少 Tile IR | 安装：`apt-get install cuda-tile-ir-13-2` |
 | 基准测试卡住 | GPU 被占用或锁定 | 检查 `nvidia-smi` 中是否有其他进程 |
 
 > [!NOTE] 

@@ -1,6 +1,6 @@
 # OpenClaw
 
-> 使用 LM Studio 或 Ollama 在 DGX Spark 上本地运行 OpenClaw
+> 在 DGX Spark 上使用 vLLM 服务的本地模型本地运行 OpenClaw
 
 ## 目录
 
@@ -21,7 +21,7 @@ OpenClaw（以前称为 Clawdbot 和 Moltbot）是在您的计算机上运行的
 
 ## 你将完成什么
 
-您将在 DGX Spark 上安装 OpenClaw 并连接到本地 LLM（通过 LM Studio 或 Ollama）。您可以使用 OpenClaw Web UI 与您的助手聊天，并可选择连接通信通道和技能。智能体和模型完全在您的 Spark 上运行，除非您添加云或外部集成，否则数据不会离开您的计算机。
+您将在 DGX Spark 上安装 OpenClaw 并连接到由 **vLLM** 服务的本地 LLM（agent-ready 的 `nvidia/Qwen3.6-35B-A3B-NVFP4` 配方）。您可以使用 OpenClaw Web UI 与您的助手聊天，并可选择连接通信通道和技能。智能体和模型完全在您的 Spark 上运行，除非您添加云或外部集成，否则数据不会离开您的计算机。
 
 ## 热门用例
 
@@ -33,7 +33,7 @@ OpenClaw（以前称为 Clawdbot 和 Moltbot）是在您的计算机上运行的
 ## 开始之前需要了解什么
 
 - Linux 终端和文本编辑器的基本使用
-- 可选：如果您计划使用本地模型，则熟悉 Ollama 或 LM Studio
+- 可选：如果您计划使用本地模型，则熟悉 Docker 和 vLLM
 - 了解以下安全注意事项
 
 ## 重要提示：安全和风险
@@ -62,10 +62,11 @@ AI 智能体可能会带来真正的风险。阅读 OpenClaw 的指南：[OpenCl
 
 ## 时间与风险
 
-- **预计时间**：安装和首次模型设置大约需要 30 分钟；模型下载时间取决于大小和网络（gpt-oss-120b 约为 65GB，在较慢的连接上可能需要更长的时间）。
+- **预计时间**：安装和首次模型设置大约需要 30 分钟；模型下载时间取决于大小和网络（NVFP4 检查点下载一次后会被缓存供后续启动使用）。
 - **风险级别**：**中到高** - 智能体可以访问您配置的任何文件、工具和通道。如果您启用终端/命令执行技能或连接外部账户，风险会显着增加。如果没有适当的隔离，此设置可能会暴露敏感数据或允许代码执行。 **始终遵循上述安全措施。**
-- **回滚**：您可以通过相同的安装脚本或删除其目录来停止 OpenClaw 网关并卸载；如果需要，请单独卸载 Ollama 或 LM Studio。
-- **最后更新**：2026 年 3 月 11 日
+- **回滚**：您可以通过相同的安装脚本或删除其目录来停止 OpenClaw 网关并卸载；如果需要，请单独停止 vLLM 容器（`docker rm`/`docker rmi`）。
+- **最后更新**：2026 年 6 月 12 日
+  - 将本地推理后端切换为 vLLM（agent-ready Qwen3.6 35B 配方）
   - 首次出版
 
 <a id="instructions"></a>
@@ -107,85 +108,21 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 
 您现在可以使用安装程序中的 URL 和令牌在浏览器中打开 OpenClaw 仪表板。
 
-## 步骤 3. 选择并安装本地 LLM 后端
+## 步骤 3. 在 DGX Spark 上使用 vLLM 服务模型
 
-OpenClaw 可以通过 **LM Studio**（最佳原始性能，使用 Llama.cpp）或 **Ollama**（更简单且适合部署）使用本地 LLM。在 DGX Spark 上使用 **单独的终端** 作为后端，以便网关和模型服务器可以并行运行。
+OpenClaw 将连接到由 **vLLM** 服务的本地 OpenAI 兼容端点。本手册使用 agent-ready 的 `nvidia/Qwen3.6-35B-A3B-NVFP4` 配方——与 vLLM 手册的 [Run Agent Ready Qwen3.6 35B Model with vLLM](https://build.nvidia.com/spark/vllm/agent-ready-qwen35b) 选项卡中记录的相同。NVFP4 量化和推测解码提供了强大的工具调用和推理质量，同时在 DGX Spark 的 128GB 统一内存上留出余量。
 
-**安装以下其中一项：**
+在 DGX Spark 上的 **单独的终端** 中，按照 vLLM 手册的 [Run Agent Ready Qwen3.6 35B Model with vLLM](https://build.nvidia.com/spark/vllm/agent-ready-qwen35b) 选项卡启动服务器。在其专用的终端中运行它，以便网关和模型服务器可以并行运行。该选项卡通过 `http://localhost:8000/v1` 上的 OpenAI 兼容 API 服务 `nvidia/Qwen3.6-35B-A3B-NVFP4`。
 
-**选项 A – LM Studio**
-
-```bash
-curl -fsSL https://lmstudio.ai/install.sh | bash
-```
-
-**选项 B – Ollama**
+当服务器报告 `Application startup complete` 后，在继续之前从另一个终端验证它：
 
 ```bash
-curl -fsSL https://ollama.com/install.sh | sh
+curl http://localhost:8000/v1/models
 ```
 
-## 步骤 4. 选择并下载模型
+您应该会在返回的列表中看到 `nvidia/Qwen3.6-35B-A3B-NVFP4`。
 
-模型质量和能力随规模而变化。释放尽可能多的 GPU 内存（避免其他 GPU 工作负载，仅启用您需要的技能）。 DGX Spark 具有 **128GB 统一内存**，因此您可以运行大型模型并留出空间。
-
-**按 GPU 内存推荐的模型：**
-
-| GPU显存   | 推荐模型                    | 模型大小 | 笔记 |
-|-------------|-------------------------------------|-----------|-------|
-| 8–12 GB     | qwen3-4B-思考-2507             | 〜5GB      | —     |
-| 16 GB       | gpt-oss-20b                        | 〜12GB     | 延迟较低，适合交互使用 |
-| 24–48 GB    | Nemotron-3-Nano-30B-A3B            | 〜20GB     | —     |
-| 128GB      | gpt-oss-120b                       | 〜65GB     | **DGX Spark 上的最佳质量**（量化）；为上下文窗口和其他进程留下约 63GB；如果您喜欢更快的响应，请使用 20B/30B |
-
-**质量与延迟：** 120B 模型提供最佳的准确性和功能，但每个令牌的延迟较高。如果您喜欢更快的回复，请改用 **gpt-oss-20b** （或 30B 模型）；两者都可以在 DGX Spark 上轻松运行，并具有充足的内存空间。
-
-**下载模型：**
-
-**LM工作室**
-
-```bash
-lms get openai/gpt-oss-120b
-```
-
-**Ollama**
-
-```bash
-ollama pull gpt-oss:120b
-```
-
-（使用与表中您的选择相匹配的模型名称；相应地调整 `lms get` 或 `ollama pull` 命令。）
-
-## 步骤 5. 使用大上下文窗口运行模型
-
-OpenClaw 在 **32K 令牌或更多** 的上下文窗口中效果最佳。
-
-**LM工作室**
-
-```bash
-lms load openai/gpt-oss-120b --context-length 32768
-```
-
-**Ollama**
-
-```bash
-ollama run gpt-oss:120b
-```
-
-出现交互式提示后，设置上下文窗口（在 Ollama 提示符下键入以下内容；不要包含任何 `>>>` 前缀）：
-
-```
-/set parameter num_ctx 32768
-```
-
-保持此终端（或进程）运行，以便模型保持加载状态。现在，您可以与模型聊天或按 Ctrl+D 退出交互模式，同时保持模型服务器运行。
-
-> [！提示]
-> **如果您看到内存不足 (OOM) 错误：** 尝试较小的上下文（例如 `16384`）或切换到较小的模型（例如 gpt-oss-20b）。加载模型时使用 `nvidia-smi` 监视内存。
-
-## 步骤 6. 配置 OpenClaw 以使用您的本地模型
-
-**如果您使用 LM Studio：**
+## 步骤 4. 配置 OpenClaw 以使用 vLLM 服务器
 
 1. 在您喜欢的编辑器（例如 `nano`、`vim` 或图形编辑器）中打开 OpenClaw 配置文件。配置路径为：
    ```bash
@@ -196,21 +133,21 @@ ollama run gpt-oss:120b
    nano ~/.openclaw/openclaw.json
    ```
 
-2. 添加或更新 `models` 部分，使其包含 LM Studio 提供程序。 **gpt-oss-120b** (DGX Spark) 示例：
+2. 添加或更新 `models` 部分，使其包含指向步骤 3 中端点的 vLLM 提供程序。vLLM 不需要 API 密钥，因此任何非空占位符均可：
 
 ```json
 "models": {
   "mode": "merge",
   "providers": {
-    "lmstudio": {
-      "baseUrl": "http://localhost:1234/v1",
-      "apiKey": "lmstudio",
+    "vllm": {
+      "baseUrl": "http://localhost:8000/v1",
+      "apiKey": "vllm",
       "api": "openai-responses",
       "models": [
         {
-          "id": "openai/gpt-oss-120b",
-          "name": "openai/gpt-oss-120b",
-          "reasoning": false,
+          "id": "nvidia/Qwen3.6-35B-A3B-NVFP4",
+          "name": "nvidia/Qwen3.6-35B-A3B-NVFP4",
+          "reasoning": true,
           "input": ["text"],
           "cost": {
             "input": 0,
@@ -218,8 +155,8 @@ ollama run gpt-oss:120b
             "cacheRead": 0,
             "cacheWrite": 0
           },
-          "contextWindow": 32768,
-          "maxTokens": 4096
+          "contextWindow": 262144,
+          "maxTokens": 8192
         }
       ]
     }
@@ -227,30 +164,22 @@ ollama run gpt-oss:120b
 }
 ```
 
-对于 **gpt-oss-20b** 或其他模型，请使用相同的结构，但设置 `id` 和 `name` 以匹配您加载的模型（例如 `openai/gpt-oss-20b`）。如果需要，调整 `contextWindow` 和 `maxTokens`。
-
-**如果您使用 Ollama：**
+`id` 和 `name` 必须与 vLLM 所服务的模型句柄（`nvidia/Qwen3.6-35B-A3B-NVFP4`）一致。`contextWindow` 与步骤 3 中的 `--max-model-len` 匹配。
 
 > [！笔记]
-> `ollama launch openclaw` 需要 **Ollama v0.15 或更高版本**。如果您看到“未知命令”错误，请升级 Ollama (`ollama --version`) 并重试。
+> 如果 OpenClaw 针对 Responses API 报告不支持端点的错误，请将 `"api": "openai-responses"` 改为适用于您的 OpenClaw 版本的 OpenAI chat-completions 变体——vLLM 始终暴露 `/v1/chat/completions`。
 
-跑步：
+3. 如果 OpenClaw 网关已在运行，请重新启动它，以便它重新加载 `~/.openclaw/openclaw.json` 并采用新的提供程序。
 
-```bash
-ollama launch openclaw
-```
-
-如果 OpenClaw 网关已在运行，它应该自动采用新配置。您可以添加 `--config` 进行配置，而无需启动网关。
-
-## 步骤 7. 验证设置
+## 步骤 5. 验证设置
 
 1. 在浏览器中，打开 **OpenClaw 仪表板 URL**（并根据需要使用访问令牌）。
 2. 开始**新**对话并发送短信。
 3. 如果您收到智能体的回复，则说明设置正常。
 
-您还可以询问 OpenClaw 它使用的是哪种模型。在网关聊天 UI 中，您可以通过键入：**`/model MODEL_NAME`** 来切换模型。
+您还可以询问 OpenClaw 它使用的是哪种模型。在网关聊天 UI 中，您可以通过键入：**`/model MODEL_NAME`**（例如 `/model nvidia/Qwen3.6-35B-A3B-NVFP4`）来切换模型。
 
-## 步骤 8. 可选：添加技能并了解更多信息
+## 步骤 6. 可选：添加技能并了解更多信息
 
 - **技能**增加了能力，但也增加了风险；仅启用您信任的技能（例如，经过社区审查的技能）。添加技能：
   - 要求 OpenClaw 配置技能，或者
@@ -263,9 +192,9 @@ ollama launch openclaw
 ## 故障排查
 | 症状 | 原因 | 使固定 |
 |---------|--------|-----|
-| OpenClaw 仪表板 URL 未加载 | 网关未运行或主机/端口错误 | **重新启动 OpenClaw 网关：** 对于 Ollama，运行 `ollama launch openclaw` 以重新启动已配置的网关。对于 LM Studio，通过 LM Studio UI 重新启动 OpenClaw 网关或重新启动 OpenClaw 服务/容器。**验证：** 使用 `pgrep -f openclaw` 或 `ps aux \| grep openclaw` 检查网关进程。**查找 URL/令牌：** 查看原始安装程序输出（向上滚动终端）或网关日志（通常位于 `~/.openclaw/logs/`），获取仪表板 URL 和访问令牌 |
-| 模型“连接被拒绝”（例如 localhost:1234 或 Ollama 端口） | LM Studio 或 Ollama 未运行，或端口错误 | 在单独的终端（`lms load ...` 或 `ollama run ...`）中启动模型，并确保 `openclaw.json` 中的端口匹配（LM Studio 为 1234，Ollama 为 11434） |
-| OpenClaw 说没有可用的模型 | 模型提供程序未配置或模型未加载 | 将 `models` 部分添加到 LM Studio 的 `~/.openclaw/openclaw.json` 中，或为 Ollama 运行 `ollama launch openclaw` ；确保模型已加载/运行 |
-| DGX Spark 内存不足或推理速度非常慢 | 模型对于可用 GPU 内存或其他 GPU 工作负载来说太大 | 释放 GPU 内存（关闭其他应用程序），选择较小的模型，或使用 `nvidia-smi` 检查使用情况 |
+| OpenClaw 仪表板 URL 未加载 | 网关未运行或主机/端口错误 | **重新启动 OpenClaw 网关**，使其重新加载 `~/.openclaw/openclaw.json`。**验证：** 使用 `pgrep -f openclaw` 或 `ps aux \| grep openclaw` 检查网关进程是否正在运行。**查找 URL/令牌：** 查看原始安装程序输出（向上滚动终端）或网关日志（通常位于 `~/.openclaw/logs/`），获取仪表板 URL 和访问令牌 |
+| 模型“连接被拒绝”（例如 localhost:8000） | vLLM 服务器未运行、仍在加载或端口错误 | 确认 vLLM 容器已启动并完成加载（`curl http://localhost:8000/v1/models` 列出该模型），并且 `openclaw.json` 中的 `baseUrl` 为 `http://localhost:8000/v1` |
+| OpenClaw 说没有可用的模型 | 提供程序未配置或模型句柄不匹配 | 将 `vllm` 提供程序添加到 `~/.openclaw/openclaw.json`，并确保 `id`/`name` 与所服务的句柄（`nvidia/Qwen3.6-35B-A3B-NVFP4`）完全一致 |
+| DGX Spark 内存不足或推理速度非常慢 | 模型对于可用 GPU 内存或其他 GPU 工作负载来说太大 | 启动 vLLM 时降低 `--gpu-memory-utilization` 或 `--max-model-len`，释放 GPU 内存（关闭其他应用程序），或使用 `nvidia-smi` 检查使用情况 |
 | 安装脚本失败或缺少依赖项 | Linux 上缺少系统包 | 安装 curl和任何所需的构建工具；有关当前要求，请参阅 [OpenClaw 文档](https://docs.openclaw.ai) |
 | 配置更改未应用 | 网关未重新加载 | 重新启动 OpenClaw 网关，使其重新加载 `~/.openclaw/openclaw.json` |

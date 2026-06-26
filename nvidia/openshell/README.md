@@ -85,22 +85,22 @@ OpenClaw 是一个本地优先的 AI 智能体，可以在您的计算机上运�
 
 - 熟悉 Linux 终端和 SSH
 - 对 Docker 的基本了解（OpenShell 在 Docker 内部运行 k3s 集群）
-- 熟悉 Ollama 本地模型服务
+- 熟悉 Docker 和 vLLM 本地模型服务
 - 对安全模型的认识：OpenShell 通过隔离降低风险，但不能消除所有风险。查看 [OpenShell 文档](https://pypi.org/project/openshell/) 和 [OpenClaw 安全指南](https://docs.openclaw.ai/gateway/security)。
 
 ## 先决条件
 
 **硬件要求：**
 - 具有 128GB 统一内存的 NVIDIA DGX Spark
-- 大型本地模型至少需要 70GB 可用内存（例如，gpt-oss:120b，约 65GB 加上开销），或者较小模型需要 25GB+（例如 gpt-oss-20b）
+- 为所服务的模型加上 KV 缓存提供足够的统一内存（本手册使用 vLLM 以 `--gpu-memory-utilization 0.4` 服务 `nvidia/Qwen3.6-35B-A3B-NVFP4`）
 
 **软件要求：**
 - NVIDIA DGX 操作系统（Ubuntu 24.04 基础）
 - Docker 桌面或 Docker 引擎正在运行：`docker info`
 - Python 3.12 或更高版本：`python3 --version`
 - `uv` 包管理器：`uv --version`（使用 `curl -LsSf https://astral.sh/uv/install.sh | sh` 安装）
-- Ollama 0.17.0 或更高版本（建议使用最新版本以支持 gpt-oss MXFP4）：`ollama --version`
-- 网络访问可从 PyPI 下载 Python 包并从 Ollama 下载模型权重
+- 已为 Docker 配置 NVIDIA Container Toolkit，以及用于下载模型的 HuggingFace 令牌
+- 网络访问可从 PyPI 下载 Python 包并从 HuggingFace 下载模型权重
 - 已为您的 DGX Spark 安装并配置 [NVIDIA Sync](https://build.nvidia.com/spark/connect-to-your-spark)
 
 ## 时间与风险
@@ -111,8 +111,9 @@ OpenClaw 是一个本地优先的 AI 智能体，可以在您的计算机上运�
   * OpenShell 沙箱强制执行内核级隔离，与直接在主机上运行 OpenClaw 相比，显着降低了风险。
   * 沙箱默认策略拒绝所有未明确允许的出站流量。错误配置的策略可能会阻止合法的智能体流量；使用 `openshell logs` 进行诊断。
   * 在不稳定的网络上，大型模型下载可能会失败。
-* **回滚：** 使用 `openshell sandbox delete <sandbox-name>` 删除沙箱，使用 `openshell gateway stop` 停止网关，并可以选择使用 `openshell gateway destroy` 销毁它。 Ollama 模型可以使用 `ollama rm <model>` 删除。
-* **最后更新：** 2026 年 3 月 13 日
+* **回滚：** 使用 `openshell sandbox delete <sandbox-name>` 删除沙箱，使用 `openshell gateway stop` 停止网关，并可以选择使用 `openshell gateway destroy` 销毁它。 vLLM 容器可以使用 `docker rm`/`docker rmi` 删除。
+* **最后更新：** 2026 年 6 月 12 日
+  * 将本地推理后端切换为 vLLM（agent-ready Qwen3.6 35B 配方）
 
 <a id="instructions"></a>
 ## 操作步骤
@@ -193,63 +194,26 @@ openshell status
 > [！提示]
 > 如果您想从单独的工作站管理 Spark 网关，请从该工作站运行 `openshell gateway start --remote <username>@<spark-ssid>.local`。所有后续命令都将通过 SSH 隧道进行路由。
 
-## 步骤 5. 安装 Ollama 并拉取模型
+## 步骤 5. 使用 vLLM 服务模型
 
-安装 Ollama（如果尚未存在）并下载用于本地推理的模型。
+使用 **vLLM** 进行本地推理来服务模型。本手册使用 agent-ready 的 `nvidia/Qwen3.6-35B-A3B-NVFP4` 配方——与 vLLM 手册的 [Run Agent Ready Qwen3.6 35B Model with vLLM](https://build.nvidia.com/spark/vllm/agent-ready-qwen35b) 选项卡中记录的相同。
 
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-ollama --version
-```
+按照该选项卡在 **单独的终端** 中启动服务器。它通过端口 `8000` 上的 OpenAI 兼容 API 服务 `nvidia/Qwen3.6-35B-A3B-NVFP4`。
 
-DGX Spark 的 128GB内存可以运行大型模型：
+> [！重要的]
+> 该配方绑定 `--host 0.0.0.0`，这在此处是必需的：OpenShell 网关在 Docker 内部运行，通过 Spark 的 IP 地址（而非 `localhost`）访问服务器。启动时请保留 `--host 0.0.0.0` 标志。
 
-| 可用 GPU 内存 | 推荐模型          | 模型大小 | 笔记 |
-|---------------------|---------------------------|-----------|-------|
-| 25–48 GB            | nemotron-3-nano           | 〜24GB     | 延迟较低，适合交互使用 |
-| 48–80 GB            | gpt-oss:120b              | 〜65GB     | 质量和速度的良好平衡 |
-| 128GB              | nemotron-3-super:120b     | 〜86GB     | DGX Spark 的最佳质量 |
-
-验证 Ollama 是否正在运行（它在安装后作为服务自动启动）。如果没有，请手动启动：
+当服务器报告 `Application startup complete` 后，验证它在所有接口上均可访问：
 
 ```bash
-ollama serve &
+curl http://0.0.0.0:8000/v1/models
 ```
 
-配置 Ollama 以侦听所有接口，以便 OpenShell 网关容器可以访问它：
-
-```bash
-sudo mkdir -p /etc/systemd/system/ollama.service.d
-printf '[Service]\nEnvironment="OLLAMA_HOST=0.0.0.0"\n' | sudo tee /etc/systemd/system/ollama.service.d/override.conf
-sudo systemctl daemon-reload
-sudo systemctl restart ollama
-```
-
-验证 Ollama 正在运行并且在所有接口上均可访问：
-
-```bash
-curl http://0.0.0.0:11434
-```
-
-预期：`Ollama is running`。如果没有，则以 `sudo systemctl start ollama` 开头。
-
-接下来，运行 Ollama 中的模型（调整模型名称以匹配您在 [the Ollama model library](https://ollama.com/library) 中的选择）。如果模型尚不存在，`ollama run` 命令将自动拉取模型。在此运行模型可确保您在将其与 OpenClaw 一起使用时已加载并准备就绪，从而减少以后超时的可能性。 nemotron-3-super 的示例：
-
-```bash
-ollama run nemotron-3-super:120b
-```
-
-输入 `/bye` 退出。
-
-验证模型是否可用：
-
-```bash
-ollama list
-```
+预期：一个列出 `nvidia/Qwen3.6-35B-A3B-NVFP4` 的 JSON `"data"` 数组。如果请求挂起，则模型很可能仍在加载——等待启动行出现后重试。
 
 ## 步骤 6. 创建推理提供程序
 
-我们将创建一个指向您本地 Ollama 服务器的 OpenShell 提供程序。这允许 OpenShell 将推理请求路由到 Spark 托管的模型。
+我们将创建一个指向您本地 vLLM 服务器的 OpenShell 提供程序。这允许 OpenShell 将推理请求路由到 Spark 托管的模型。
 
 首先，找到 DGX Spark 的 IP 地址：
 
@@ -257,14 +221,14 @@ ollama list
 hostname -I | awk '{print $1}'
 ```
 
-然后创建提供程序，将 `{Machine_IP}` 替换为上述命令中的 IP 地址（例如 `10.110.106.169`）：
+然后创建提供程序，将 `{Machine_IP}` 替换为上述命令中的 IP 地址（例如 `10.110.106.169`）。vLLM 不需要 API 密钥，因此任何非空占位符均可：
 
 ```bash
 openshell provider create \
-    --name local-ollama \
+    --name local-vllm \
     --type openai \
     --credential OPENAI_API_KEY=not-needed \
-    --config OPENAI_BASE_URL=http://{Machine_IP}:11434/v1
+    --config OPENAI_BASE_URL=http://{Machine_IP}:8000/v1
 ```
 
 > [！重要的]
@@ -278,18 +242,18 @@ openshell provider list
 
 ## 步骤 7. 配置推理路由
 
-将 `inference.local` 端点（每个沙箱内都可用）指向您的 Ollama 模型。将模型名称替换为您在第 5 步中选择的名称：
+将 `inference.local` 端点（每个沙箱内都可用）指向您的 vLLM 模型。模型名称必须与第 5 步中所服务的句柄一致：
 
 ```bash
 openshell inference set \
-    --provider local-ollama \
-    --model nemotron-3-super:120b
+    --provider local-vllm \
+    --model nvidia/Qwen3.6-35B-A3B-NVFP4
 ```
 
-输出应确认路由并显示经过验证的端点 URL，例如：`http://10.110.106.169:11434/v1/chat/completions (openai_chat_completions)`。
+输出应确认路由并显示经过验证的端点 URL，例如：`http://10.110.106.169:8000/v1/chat/completions (openai_chat_completions)`。
 
 > [！笔记]
-> 如果您看到 `failed to verify inference endpoint` 或 `failed to connect`（例如，因为网关无法从其容器内部访问主机 IP），请添加 `--no-verify` 以跳过端点验证：`openshell inference set --provider local-ollama --model nemotron-3-super:120b --no-verify`。确保 Ollama 正在所有接口上运行并侦听（请参阅步骤 5）。
+> 如果您看到 `failed to verify inference endpoint` 或 `failed to connect`（例如，因为网关无法从其容器内部访问主机 IP），请添加 `--no-verify` 以跳过端点验证：`openshell inference set --provider local-vllm --model nvidia/Qwen3.6-35B-A3B-NVFP4 --no-verify`。确保 vLLM 服务器正在运行并可通过 Spark 的 IP 访问（请参阅步骤 5）。
 
 验证配置：
 
@@ -297,7 +261,7 @@ openshell inference set \
 openshell inference get
 ```
 
-预期输出应显示 `provider: local-ollama` 和 `model: nemotron-3-super:120b` （或您选择的任何模型）。
+预期输出应显示 `provider: local-vllm` 和 `model: nvidia/Qwen3.6-35B-A3B-NVFP4`。
 
 ## 步骤 8. 部署 OpenShell 沙箱
 
@@ -341,10 +305,10 @@ CLI 将：
 - 模型/身份验证提供商：选择**自定义提供商**，倒数第二个选项。
 - API 基本 URL：更新为 https://inference.local/v1
 - 您想如何提供此 API 密钥？：暂时粘贴 API 密钥。
-- API密钥：请输入“ollama”。
+- API密钥：请输入”vllm”（vLLM 不验证密钥；任何非空值均可）。
 - 端点兼容性：选择**OpenAI-兼容**并按 Enter。
-- 模型 ID：输入您在步骤 5 中选择的模型名称（例如 `nemotron-3-super:120b`）。
-	- 这可能需要 1-2 分钟，因为 Ollama 模型在后台旋转。
+- 模型 ID：输入您在步骤 5 中所服务的模型句柄：`nvidia/Qwen3.6-35B-A3B-NVFP4`。
+	- 首次请求时 vLLM 预热可能需要片刻。
 - 端点 ID：保留默认值。
 - 别名：输入相同的模型名称（可选）。
 - 频道：选择**暂时跳过**。
@@ -456,13 +420,13 @@ openshell forward start --background 18789 dgx-demo
 openshell sandbox connect $SANDBOX_NAME
 ```
 
-加载到沙箱终端后，您可以使用以下命令测试与 Ollama 模型的连接：
+加载到沙箱终端后，您可以使用以下命令测试与 vLLM 模型的连接：
 ``` bash
-curl https://inference.local/v1/responses \
+curl https://inference.local/v1/chat/completions \
           -H "Content-Type: application/json" \
           -d '{
-        "instructions": "You are a helpful assistant.",
-        "input": "Hello!"
+        "model": "nvidia/Qwen3.6-35B-A3B-NVFP4",
+        "messages": [{"role": "user", "content": "Hello!"}]
       }'
 ```
 
@@ -513,7 +477,7 @@ openshell sandbox delete $SANDBOX_NAME
 删除您在步骤 6 中创建的推理提供程序：
 
 ```bash
-openshell provider delete local-ollama
+openshell provider delete local-vllm
 ```
 
 停止网关（保留状态供以后使用）：
@@ -529,10 +493,11 @@ openshell gateway stop
 openshell gateway destroy
 ```
 
-要同时删除 Ollama 模型：
+要同时停止并删除 vLLM 容器和镜像：
 
 ```bash
-ollama rm nemotron-3-super:120b
+docker rm $(docker ps -aq --filter ancestor=vllm/vllm-openai:nightly-aarch64)
+docker rmi vllm/vllm-openai:nightly-aarch64
 ```
 
 ## 步骤 14. 后续步骤
@@ -550,11 +515,11 @@ ollama rm nemotron-3-super:120b
 | `openshell status` 显示网关不健康 | 网关容器崩溃或初始化失败 | 运行 `openshell gateway destroy`，然后运行 ​​`openshell gateway start` 以重新创建它。使用 `docker ps -a` 和 `docker logs <container-id>` 检查 Docker 日志以获取详细信息 |
 | `openshell sandbox create --from openclaw` 构建失败 | 拉取社区沙箱或 Dockerfile 构建失败的网络问题 | 检查互联网连接。重试该命令。如果在特定包上构建失败，请检查基础映像是否与您的 Docker 版本兼容 |
 | 沙盒创建后处于 `Error` 阶段 | 策略验证失败或容器启动崩溃 | 运行 `openshell logs <sandbox-name>` 查看错误详细信息。常见原因：策略 YAML 无效、缺少提供商凭据或端口冲突 |
-| 智能体无法到达沙箱内的 `inference.local` | 未配置推理路由或无法访问提供程序 | 运行 `openshell inference get` 以验证提供程序和模型是否已设置。测试 Ollama 可从主机访问：`curl http://localhost:11434/api/tags`。确保提供程序 URL 使用 `host.docker.internal` 而不是 `localhost` |
-| 网关/沙箱访问主机Ollama时503验证失败或超时 | Ollama 仅绑定到本地主机，或主机防火墙阻止端口 11434 | 让 Ollama 监听所有接口，以便网关容器（例如在 Docker 网络 172.17.x.x 上）可以访问它：`OLLAMA_HOST=0.0.0.0 ollama serve &`。允许端口 11434 通过主机防火墙：`sudo ufw allow 11434/tcp comment 'Ollama for OpenShell Gateway'`（然后是 `sudo ufw reload`，如果需要）。 |
+| 智能体无法到达沙箱内的 `inference.local` | 未配置推理路由或无法访问提供程序 | 运行 `openshell inference get` 以验证提供程序和模型是否已设置。从主机测试 vLLM 服务器：`curl http://localhost:8000/v1/models`。确保提供程序的 `OPENAI_BASE_URL` 使用 Spark 的 IP 地址（而非 `localhost`），因为网关在 Docker 内部运行 |
+| 网关/沙箱访问主机 vLLM 时 503 验证失败或超时 | 提供程序 URL 指向 `localhost`，或主机防火墙阻止端口 8000 | 该配方已将 vLLM 绑定到所有接口（`--host 0.0.0.0`）。确认提供程序的 `OPENAI_BASE_URL` 使用 Spark 的 IP（来自 `hostname -I`），以便网关容器（例如在 Docker 网络 172.17.x.x 上）可以访问它。允许端口 8000 通过主机防火墙：`sudo ufw allow 8000/tcp comment 'vLLM for OpenShell Gateway'`（然后是 `sudo ufw reload`，如果需要）。 |
 | 智能体的出站连接全部被拒绝 | 默认策略不包括所需的端点 | 使用 `openshell logs <sandbox-name> --tail --source sandbox` 监视拒绝。使用 `openshell policy get <sandbox-name> --full` 拉取当前策略，在 `network_policies` 下添加所需的主机/端口，并使用 `openshell policy set <sandbox-name> --policy <file> --wait` 推送 |
 | 沙箱内出现“权限被拒绝”或 Landlock 错误 | 智能体尝试访问不在 `read_only` 或 `read_write` 文件系统策略中的路径 | 拉取当前策略并将路径添加到 `read_write`（如果读取访问权限足够，则添加到 `read_only`）。推送更新的政策。注意：文件系统策略是静态的，需要重新创建沙箱 |
-| Ollama OOM 或非常慢的推理 | 模型对于可用内存或 GPU 争用来说太大 | 释放 GPU 内存（关闭其他 GPU 工作负载），尝试较小的模型（例如 `gpt-oss:20b`），或减少上下文长度。使用 `nvidia-smi` 进行监控 |
+| vLLM OOM 或非常慢的推理 | 模型对于可用内存或 GPU 争用来说太大 | 释放 GPU 内存（关闭其他 GPU 工作负载），或以更低的 `--gpu-memory-utilization` / `--max-model-len`（或更小的模型句柄）重新启动 vLLM。使用 `nvidia-smi` 进行监控 |
 | `openshell sandbox connect` 挂起或超时 | 沙箱未处于 `Ready` 阶段 | 运行 `openshell sandbox get <sandbox-name>` 检查相位。如果卡在 `Provisioning` 中，请等待或检查日志。如果在 `Error` 中，则删除并重新创建沙箱 |
 | 策略推送返回退出代码 1（验证失败） | YAML 格式错误或策略字段无效 | 检查 YAML 语法。常见问题：路径不以 `/` 开头、路径中存在 `..` 遍历、`root` 为 `run_as_user`，或者端点缺少必需的 `host`/`port` 字段。修复并重新推送 |
 | `openshell gateway start` 失败，并显示“K8s 命名空间未就绪”/等待命名空间超时 | Docker 容器内的 k3s 集群的引导时间比 CLI 超时允许的时间长。内部组件（TLS 密钥、Helm 图表、命名空间创建）可能需要额外的时间，尤其是在首次运行时，当图像被拉入容器内时。 | 首先，检查容器是否仍在运行并正在进行：`docker ps --filter name=openshell`（查找`health: starting`）。检查容器内的 k3s 状态：`docker exec <container> sh -c "KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl get ns"` 和 `kubectl get pods -A`。如果 Pod 位于 `ContainerCreating` 中并且缺少 TLS 机密（`navigator-server-tls`、`openshell-server-tls`），则集群仍在引导 - 等待几分钟并再次运行 `openshell status`。如果它没有恢复，请使用 `openshell gateway destroy`（如果需要的话，使用 `docker rm -f <container>`）销毁并重试 `openshell gateway start`。确保 Docker 有足够的资源（内存和磁盘）供 k3s 集群使用。 |

@@ -1,7 +1,6 @@
 # 在 DGX Spark 上使用 llama.cpp 运行模型
 
-> 使用 CUDA 构建 llama.cpp 并通过 OpenAI 兼容的 API 提供模型（以 Nemotron 3 Nano Omni 为例）
-
+> 使用 CUDA 构建 llama.cpp 并通过 OpenAI 兼容的 API 提供模型
 
 ## 目录
 
@@ -16,31 +15,30 @@
 
 ## 基本思路
 
-[llama.cpp](https://github.com/ggml-org/llama.cpp) 是用于大型语言模型的轻量级 C/C++ 推理堆栈。您可以使用 CUDA 构建它，以便张量工作在 DGX Spark GB10 GPU 上运行，然后加载 GGUF 权重并通过 `llama-server` 的 OpenAI 兼容 HTTP API 公开聊天。
+[llama.cpp](https://github.com/ggml-org/llama.cpp) 是用于大型语言模型的轻量级 C/C++ 推理堆栈。您可以使用 CUDA 构建它，以便充分利用 DGX Spark GB10 GPU，然后加载 GGUF 权重并通过 `llama-server` 的 OpenAI 兼容 HTTP API 公开聊天。
 
-本剧本以 **Nemotron 3 Nano Omni**（NVIDIA 的 MoE 系列，能在 Spark 上以量化 GGUF 良好运行）作为实战示例，从头到尾地遍历该堆栈。所有受支持模型的检查点选择和路径都汇总在下面的矩阵中；命令位于操作步骤中。
+本剧本以支持 MTP 的 **Qwen3.6-35B-A3B** 作为实战示例，从头到尾地遍历该堆栈。所有受支持模型的检查点选择和路径都汇总在下面的矩阵中；命令位于操作步骤中。
 
 ## 你将完成什么
 
-您将使用 GB10 的 CUDA 构建 llama.cpp，下载 **Nemotron 3 Nano Omni** 示例检查点，并使用 GPU 卸载运行 **`llama-server`**。你得到：
+您将使用 GB10 的 CUDA 构建 llama.cpp，下载 **Qwen3.6-35B-A3B** 检查点，并使用 GPU 卸载运行 **`llama-server`**。你得到：
 
 - 通过 llama.cpp 进行本地推理（无需单独的 Python 推理框架）
 - 用于工具和应用程序的 OpenAI 兼容 `/v1/chat/completions` 端点
-- **Nemotron 3 Nano Omni** 示例在 DGX Spark 的该堆栈上运行的具体验证
+- **Qwen3.6-35B-A3B** 示例在 DGX Spark 的该堆栈上支持 MTP 运行的具体验证
 
 ## 开始之前需要了解什么
 
 - 基本熟悉 Linux 命令行和终端命令
 - 了解 git 并使用 CMake 从源代码构建
 - 用于测试的 REST API 和 cURL 的基本知识
-- 熟悉使用 Hugging Face Hub 下载 GGUF 文件
 
 ## 先决条件
 
 **硬件要求**
 
 - 配备 GB10 GPU 的 NVIDIA DGX Spark
-- 为示例 **Q8_0** 检查点提供足够的统一内存（权重约为 **~35GB**，加上 KV 缓存和运行时开销——如选择更大的量化或更长上下文则需扩容）
+- 为模型和所使用的 KV-Cache 提供足够的统一内存（示例中模型约需 30GB 可用内存）
 - 至少 **~40GB** 可用磁盘用于示例下载和构建工件（如果保留多个 GGUF 则需要更多）
 
 **软件要求**
@@ -53,62 +51,31 @@
 
 ## 模型支持矩阵
 
-Spark 上的 llama.cpp 支持以下模型。说明默认使用 **Nemotron 3 Nano Omni** 示例行。
-
-| 模型 | 支持状态 | 模型标识 |
-|-------|----------------|-----------|
-| **Nemotron 3 Nano Omni**（示例演练） | ✅ | `ggml-org/NVIDIA-Nemotron-3-Nano-Omni` |
-| **Qwen3.6-35B-A3B** | ✅ | `unsloth/Qwen3.6-35B-A3B-GGUF` |
-| **Qwen3.6-27B** | ✅ | `unsloth/Qwen3.6-27B-GGUF` |
-| **Gemma 4 31B IT** | ✅ | `ggml-org/gemma-4-31B-it-GGUF` |
-| **Gemma 4 26B A4B IT** | ✅ | `ggml-org/gemma-4-26B-A4B-it-GGUF` |
-| **Gemma 4 E4B IT** | ✅ | `ggml-org/gemma-4-E4B-it-GGUF` |
-| **Gemma 4 E2B IT** | ✅ | `ggml-org/gemma-4-E2B-it-GGUF` |
-| **Nemotron-3-Nano** | ✅ | `unsloth/Nemotron-3-Nano-30B-A3B-GGUF` |
+只要系统有足够的内存来承载和运行检查点，DGX Spark 就能通过 llama.cpp 支持任何 GGUF 格式的模型检查点。
 
 ## 时间与风险
 
 * **预计时间：** 大约 30 分钟，加上下载示例 GGUF（默认量化约 ~35GB 量级）
 * **风险级别：** 低 — 构建是您的克隆本地的；以下步骤无需进行系统范围内的安装
-* **回滚：**删除`llama.cpp`克隆以及`~/models/`下的模型目录以回收磁盘空间
-* **最后更新：** 2026 年 4 月 28 日
-  * 演练改用 Nemotron Omni；其他模型行仍可用
+* **回滚：**删除`llama.cpp`克隆以及`~/.cache/huggingface/hub/`下的模型目录以回收磁盘空间
+* **最后更新：** 2026 年 6 月 3 日
+  * 演练现以 Qwen3.6-35B-A3B 为示例
 
 <a id="instructions"></a>
 ## 操作步骤
-## 步骤 1. 验证先决条件
+## 步骤 1. 安装依赖项
 
-**示例**检查点为 Hugging Face 仓库 **`ggml-org/NVIDIA-Nemotron-3-Nano-Omni`** 中的 **`nemotron-3-nano-omni-ga_v1.0-Q8_0.gguf`**（完整标识：`ggml-org/NVIDIA-Nemotron-3-Nano-Omni/nemotron-3-nano-omni-ga_v1.0-Q8_0.gguf`）。其他受支持的 GGUF——包括 Qwen3.6、Gemma 以及其他 Nemotron Omni 构建——使用相同的构建和服务器步骤；只需更改 `hf download` 与 `--model` 路径（见上方模型矩阵）。
+安装所需的依赖项：
 
-确保安装了所需的工具：
-
-```bash
-git --version
-cmake --version
-nvcc --version
-```
-
-所有命令都应返回版本信息。如果缺少任何内容，请在继续之前安装它们。
-
-安装 Hugging Face CLI：
-
-```bash
-python3 -m venv llama-cpp-venv
-source llama-cpp-venv/bin/activate
-pip install -U "huggingface_hub[cli]"
-```
-
-验证安装：
-
-```bash
-hf version
+```shell
+sudo apt install -y git clang cmake libcurl4-openssl-dev libssl-dev
 ```
 
 ## 步骤 2. 克隆 llama.cpp 仓库
 
 克隆上游 llama.cpp — 您正在构建的框架：
 
-```bash
+```shell
 git clone https://github.com/ggml-org/llama.cpp
 cd llama.cpp
 ```
@@ -117,66 +84,79 @@ cd llama.cpp
 
 使用 CUDA 和 GB10 的 **sm_121** 架构配置 CMake，以便 GGML 的 CUDA 后端与您的 GPU 匹配：
 
-```bash
-mkdir build && cd build
-cmake .. -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="121" -DLLAMA_CURL=OFF
-make -j8
+```shell
+cmake -B build -DGGML_NATIVE=ON -DGGML_CUDA=ON -DGGML_CURL=ON -DGGML_RPC=ON -DCMAKE_CUDA_ARCHITECTURES=121a-real
+cmake --build build --config Release -j
 ```
 
 构建通常需要 5-10 分钟左右。完成后，`llama-server` 等二进制文件将出现在 `build/bin/` 下。
 
-## 步骤 4. 下载示例 Nemotron 3 Nano Omni GGUF
+## 步骤 4. 使用模型启动 llama-server
 
-llama.cpp 以 **GGUF** 格式加载模型。本剧本使用来自 `ggml-org/NVIDIA-Nemotron-3-Nano-Omni` 的 **Q8_0** 检查点，可在 DGX Spark GB10 的统一内存上平衡质量和内存。
+llama.cpp 以 **GGUF** 格式加载模型。本剧本使用来自 `unsloth/Qwen3.6-35B-A3B-MTP-GGUF` 的 **Q4_K_XL** 检查点，可在 DGX Spark 上很好地平衡质量与速度。
 
-```bash
-hf download ggml-org/NVIDIA-Nemotron-3-Nano-Omni \
-  nemotron-3-nano-omni-ga_v1.0-Q8_0.gguf \
-  --local-dir ~/models/NVIDIA-Nemotron-3-Nano-Omni
+从 `llama.cpp/build` 目录中，启动具有 GPU 卸载功能的 OpenAI 兼容服务器。如果之前未下载过模型或有任何更新，它会先从 HuggingFace 加载模型。
+
+所有模型都保存在默认的 HuggingFace 缓存目录 ~/.cache/huggingface/hub 中。例如，该模型将保存到 ~/.cache/huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-MTP-GGUF。
+
+如果模型支持，它还会自动加载 mmproj 文件以启用视觉能力。默认情况下，llama-server 会尝试容纳完整的模型上下文并支持 4 个并发请求，但它会在需要时自动调整参数。
+
+```shell
+./bin/llama-server \
+  -hf unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL \
+  --host 0.0.0.0 \
+  --port 30000
 ```
 
-文件量级约为 **~35GB**（具体大小可能不同）。如果中断，可以继续下载。
+要使用 MTP 推测解码运行，请按下面的示例提供额外的参数。MTP 需要兼容的模型，例如本示例中使用的 `unsloth/Qwen3.6-35B-A3B-MTP-GGUF`。下面的示例还设置了 “preserve_thinking” 标志，它允许 Qwen 模型使用所谓的“交错思考”（interleaved thinking），即在历史记录中保留所有先前的思考块，这对 agentic 工作流很有用。
 
-## 步骤 5. 使用 Nemotron 3 Nano Omni 启动 llama-server
-
-从 `llama.cpp/build` 目录中，启动具有 GPU 卸载功能的 OpenAI 兼容服务器：
-
-```bash
+```shell
 ./bin/llama-server \
-  --model ~/models/NVIDIA-Nemotron-3-Nano-Omni/nemotron-3-nano-omni-ga_v1.0-Q8_0.gguf \
+  -hf unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL \
   --host 0.0.0.0 \
   --port 30000 \
-  --n-gpu-layers 99 \
-  --ctx-size 8192 \
-  --threads 8
+  --chat-template-kwargs '{"preserve_thinking": true}' \
+  --spec-type draft-mtp \
+  --spec-draft-n-max 3 
 ```
 
 **参数（简短）：**
 
 - `--host` / `--port`：HTTP API 的绑定地址和端口
-- `--n-gpu-layers 99`：将层卸载到 GPU（如果使用不同的模型，请进行调整）
-- `--ctx-size`：上下文长度（可以增加到模型/服务器限制；使用更多内存）
-- `--threads`：用于非 GPU 工作的 CPU 线程
+- `--chat-template-kwargs`：为 json 模板解析器设置额外参数，必须是有效的 json 对象字符串
+- `--spec-type`：要使用的推测解码类型的逗号分隔列表（默认：none，大多数兼容 MTP 的模型使用 “draft-mtp”，但你需要先查看模型卡）
+- `--spec-draft-n-max`：推测解码要起草的 token 数量（默认：3）
 
 您应该看到类似于以下内容的日志行：
 
 ```
-llama_new_context_with_model: n_ctx = 8192
+0.14.322.968 I srv    load_model: speculative decoding context initialized
+0.14.322.970 I slot   load_model: id  0 | task -1 | new slot, n_ctx = 262144
+0.14.322.972 I slot   load_model: id  1 | task -1 | new slot, n_ctx = 262144
+0.14.322.972 I slot   load_model: id  2 | task -1 | new slot, n_ctx = 262144
+0.14.322.973 I slot   load_model: id  3 | task -1 | new slot, n_ctx = 262144
+0.14.323.063 I srv    load_model: prompt cache is enabled, size limit: 8192 MiB
+
 ...
-main: server is listening on 0.0.0.0:30000
+0.14.342.935 I srv  llama_server: model loaded
+0.14.342.939 I srv  llama_server: server is listening on http://0.0.0.0:30000
+0.14.342.944 I srv  update_slots: all slots are idle
+
 ```
 
-**测试时保持此终端打开**。大型 GGUF 可能需要一分钟以上才能加载；在您看到 `server is listening` 之前，端口 30000 上没有任何内容接受连接（请参阅排除 `curl` 报告连接被拒绝的情况）。
+**测试时保持此终端打开**。大型 GGUF 可能需要一分钟以上才能加载，如果模型尚未下载，初始模型下载可能需要一段时间。下载模型时您会看到进度条。
 
-## 步骤 6. 测试 API
+只有在您看到 `server is listening` 消息后，服务器才准备好在端口 30000 上接受传入连接（如果 `curl` 报告连接被拒绝，请参阅故障排查）。
+
+## 步骤 5. 测试 API
 
 使用运行 `llama-server` 的同一台计算机上的第二个终端（例如 DGX Spark 的另一个 SSH 会话）。如果您在笔记本电脑上运行 `curl`，而服务器仅在 Spark 上运行，请使用 Spark 主机名或 IP，而不是 `localhost`。
 
-```bash
+```shell
 curl -X POST http://127.0.0.1:30000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "nemotron",
+    "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL",
     "messages": [{"role": "user", "content": "New York is a great city because..."}],
     "max_tokens": 100
   }'
@@ -199,7 +179,7 @@ curl -X POST http://127.0.0.1:30000/v1/chat/completions \
     }
   ],
   "created": 1765916539,
-  "model": "nemotron-3-nano-omni-ga_v1.0-Q8_0.gguf",
+  "model": "$MODEL_PATH",
   "object": "chat.completion",
   "usage": {
     "completion_tokens": 100,
@@ -213,41 +193,35 @@ curl -X POST http://127.0.0.1:30000/v1/chat/completions \
 }
 ```
 
-## 步骤 7. 更长的完成时间（使用 Nemotron 3 Nano Omni）
+## 步骤 6. 更长的完成时间（使用 Qwen3.6-35B-A3B）
 
-尝试使用稍长的提示来确认 **Nemotron 3 Nano Omni** 的稳定生成：
+尝试使用稍长的提示来确认 **Qwen3.6-35B-A3B** 的稳定生成：
 
-```bash
+```shell
 curl -X POST http://127.0.0.1:30000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "nemotron",
+    "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL",
     "messages": [{"role": "user", "content": "Solve this step by step: If a train travels 120 miles in 2 hours, what is its average speed?"}],
     "max_tokens": 500
   }'
 ```
 
-## 步骤 8. 清理
+## 步骤 7. 清理
 
 在运行服务器的终端中使用 `Ctrl+C` 停止服务器。
 
 要删除本教程的工件：
 
-```bash
+```shell
 rm -rf ~/llama.cpp
-rm -rf ~/models/NVIDIA-Nemotron-3-Nano-Omni
+rm -rf ~/.cache/huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-MTP-GGUF
 ```
 
-如果不再需要 `hf`，请停用 Python venv：
+## 步骤 8. 后续步骤
 
-```bash
-deactivate
-```
-
-## 步骤 9. 后续步骤
-
-1. **上下文长度：** 增加 `--ctx-size` 以获得更长的聊天时间（监视内存；仅当构建、模型和硬件允许时才可以使用 1M 令牌类上下文）。
-2. **其他模型：** 将 `--model` 指向任何兼容的 GGUF； llama.cpp 服务器 API 保持不变。
+1. **上下文长度：** 默认情况下，llama.cpp 会尽可能为模型分配其支持的最大上下文大小，但你也可以使用 `--ctx-size`（或 `-c`）手动设置以适应你的需求。对于 agentic 或编程需求，你至少需要 32768 个 token，最好是 100000 或更多。
+2. **其他模型：** 你可以使用 `--model` 加载任何本地下载的兼容 GGUF；llama.cpp 服务器 API 保持不变。使用 `-hf` 让 llama.cpp 自动管理下载/更新。请注意，如果你将 `--model` 与多模态模型一起使用，需要使用 `--mmproj` 参数提供 .mmproj 文件的路径。如果你使用 `-hf`，它会自动加载 mmproj 文件。
 3. **集成：** 使用 OpenAI 客户端模式在 `http://<spark-host>:30000/v1` 点 Open WebUI、Continue.dev 或自定义客户端。
 
 服务器实现了 llama.cpp 构建启用的常见 OpenAI 风格聊天功能（包括支持的流和工具相关流程）。

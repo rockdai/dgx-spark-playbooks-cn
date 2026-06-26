@@ -52,10 +52,10 @@
   * 由于模型下载量较大，容器启动可能会占用大量资源且耗时
   * 如果共享网络已存在，网络配置会发生冲突
   * 远程 API 端点可能存在速率限制或连接问题（混合部署）
-* **回滚：** 使用 `scripts/dev-profile.sh down` 停止所有容器
-* **最后更新：** 2026 年 3 月 16 日
+* **回滚：** 使用 `deploy/docker/scripts/dev-profile.sh down` 停止所有容器
+* **最后更新：** 2026 年 6 月 17 日
   * 更新所需的操作系统和驱动程序版本
-  * 通过 Cosmos Reason 2 VLM 支持 VSS 3.1.0
+  * 通过 Cosmos Reason 2 VLM 支持 VSS 3.2.0
 
 <a id="instructions"></a>
 ## 操作步骤
@@ -66,7 +66,7 @@
 ```bash
 ## Verify driver version
 nvidia-smi | grep "Driver Version"
-## Expected output: Driver Version: 580.126.09 or higher
+## Expected output: Driver Version: 580.95.05 or higher
 
 ## Verify CUDA version
 nvcc --version
@@ -107,10 +107,19 @@ sudo docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
 
 从 NVIDIA 的公共 GitHub 克隆视频搜索和摘要仓库。
 
+**注意** 如果系统上尚未安装 Git LFS，请先安装
+
+```bash
+sudo apt-get install -y git-lfs && git lfs install
+```
+
 ```bash
 ## Clone the VSS AI Blueprint repository
 git clone https://github.com/NVIDIA-AI-Blueprints/video-search-and-summarization.git
 cd video-search-and-summarization
+git checkout tags/v3.2.0
+git lfs install
+git lfs pull
 ```
 
 ## 步骤 4. 运行缓存清理脚本
@@ -149,12 +158,11 @@ sudo -b /usr/local/bin/sys-cache-cleaner.sh
 ```
 
 > [!NOTE]
-+> 以上仅在当前会话中运行缓存清理器；它不会在重新启动后持续存在。要让缓存清理器在重新启动后运行，请创建一个 systemd 服务。
-+>
-+> 要停止后台缓存清理器：
-+> ```bash
-+> sudo pkill -f sys-cache-cleaner.sh
-+> ```
+以上仅在当前会话中运行缓存清理器；它不会在重新启动后持续存在。要让缓存清理器在重新启动后运行，请创建一个 systemd 服务。
+要停止后台缓存清理器：
+```bash
+sudo pkill -f sys-cache-cleaner.sh
+```
 
 
 ## 步骤 5. 使用 NVIDIA 容器注册表进行身份验证
@@ -173,7 +181,7 @@ docker login nvcr.io
 
 ## 步骤6.选择部署场景
 
-根据您的要求在两个部署选项之间进行选择：
+根据您的要求选择部署选项：
 
 | 部署场景                       | VLM（Cosmos-Reason2-8B）| LLM                           |
 |-------------------------------------------|------------------------|-------------------------------|
@@ -203,19 +211,21 @@ docker login nvcr.io
 
 ```bash
 ## Start Standard VSS (Base)
+## Set NGC CLI API key and Hugging Face token (required for VA-MCP)
 export NGC_CLI_API_KEY='your_ngc_api_key'
+export HF_TOKEN='hf_your_token_here'
 export LLM_ENDPOINT_URL=https://your-llm-endpoint.com
-scripts/dev-profile.sh up -p base -H DGX-SPARK --use-remote-llm --llm <REMOTE LLM MODEL NAME>
+deploy/docker/scripts/dev-profile.sh up -p base -H DGX-SPARK --use-remote-llm --llm <REMOTE LLM MODEL NAME>
 
 ## Start Standard VSS (Alert Verification)
 export NGC_CLI_API_KEY='your_ngc_api_key'
 export LLM_ENDPOINT_URL=https://your-llm-endpoint.com
-scripts/dev-profile.sh up -p alerts -m verification -H DGX-SPARK --use-remote-llm --llm <REMOTE LLM MODEL NAME>
+deploy/docker/scripts/dev-profile.sh up -p alerts -m verification -H DGX-SPARK --use-remote-llm --llm <REMOTE LLM MODEL NAME>
 
 ## Start Standard VSS (Real-Time Alerts)
 export NGC_CLI_API_KEY='your_ngc_api_key'
 export LLM_ENDPOINT_URL=https://your-llm-endpoint.com
-scripts/dev-profile.sh up -p alerts -m real-time -H DGX-SPARK --use-remote-llm --llm <REMOTE LLM MODEL NAME>
+deploy/docker/scripts/dev-profile.sh up -p alerts -m real-time -H DGX-SPARK --use-remote-llm --llm <REMOTE LLM MODEL NAME>
 ```
 
 > [!NOTE]
@@ -227,11 +237,11 @@ scripts/dev-profile.sh up -p alerts -m real-time -H DGX-SPARK --use-remote-llm -
 > • **OPENAI_API_KEY** —（可选）对于需要它的远程 LLM/VLM 端点
 > • **VLM_CUSTOM_WEIGHTS** —（可选）自定义权重目录的绝对路径
 >
-> 将这些附加标志传递给 **`scripts/dev-profile.sh`** 以实现远程 LLM 模式：
+> 将这些附加标志传递给 **`deploy/docker/scripts/dev-profile.sh`** 以实现远程 LLM 模式：
 > • **`--use-remote-llm`** —（必需）使用远程 LLM，基本 URL 是从环境中的 **`LLM_ENDPOINT_URL`** 读取的
 > • **`--llm`** —（必需）远程LLM 模型名称（例如：`nvidia/nvidia-nemotron-nano-9b-v2`）。 **强烈建议**对于警报工作流程（验证和实时）：使用 `nvidia/nvidia-nemotron-nano-9b-v2`。省略 `--llm` 可能会导致脚本使用远程端点返回的任何模型。
 >
-> 运行 **`scripts/dev-profile.sh -h`** 以获得受支持参数的完整列表。
+> 运行 **`deploy/docker/scripts/dev-profile.sh --help`** 以获得受支持参数的完整列表。
 
 
 **7.3 验证标准 VSS 部署**
@@ -242,7 +252,7 @@ scripts/dev-profile.sh up -p alerts -m real-time -H DGX-SPARK --use-remote-llm -
 ```bash
 ## 测试智能体 UI 可访问性
 ## If running locally on your Spark device, use localhost:
-curl -I http://localhost:3000
+curl -I http://localhost:7777
 ## Expected: HTTP 200 response
 
 ## If your Spark is running in Remote/Accessory mode, replace 'localhost' with the IP address or hostname of your Spark device.
@@ -251,20 +261,23 @@ hostname -I
 ## Or to get the hostname:
 hostname
 ## Then test accessibility (replace <SPARK_IP_OR_HOSTNAME> with the actual value):
-curl -I http://<SPARK_IP_OR_HOSTNAME>:3000
+curl -I http://<SPARK_IP_OR_HOSTNAME>:7777
 ```
 
-在浏览器中打开`http://localhost:3000`或`http://<SPARK_IP_OR_HOSTNAME>:3000`以访问智能体界面。
+在浏览器中打开`http://localhost:7777`或`http://<SPARK_IP_OR_HOSTNAME>:7777`以访问智能体界面。
 
 ## 步骤 8. 测试视频处理工作流程
 
-运行基本测试以验证视频分析管道是否根据您的部署正常运行。用户界面附带了一些预先填充的示例视频，用于上传和测试
+运行基本测试以验证视频分析管道是否根据您的部署正常运行。
 
 **对于标准 VSS 部署**
 
 按照步骤 [这里](https://docs.nvidia.com/vss/latest/quickstart.html#deploy) 导航 VSS 智能体 UI。
-- 访问 `http://localhost:3000` 处的 VSS 智能体界面
-- 从 NGC [这里](https://docs.nvidia.com/vss/latest/quickstart.html#download-sample-data-from-ngc) 下载样本数据并上传视频和测试功能 [这里](https://docs.nvidia.com/vss/latest/quickstart.html#download-sample-data-from-ngc)
+- 访问 `http://localhost:7777` 处的 VSS 智能体界面
+- 从 NGC [这里](https://docs.nvidia.com/vss/latest/quickstart.html#download-sample-data-from-ngc) 下载样本数据并上传视频和测试功能
+- 测试标准 VSS 部署（基础）[这里](https://docs.nvidia.com/vss/latest/quickstart.html#step-2-upload-a-video)
+- 测试标准 VSS 部署（警报验证）[这里](https://docs.nvidia.com/vss/latest/agent-workflow-alert-verification.html#step-2-add-a-video-stream)
+- 测试标准 VSS 部署（实时警报）[这里](https://docs.nvidia.com/vss/latest/agent-workflow-rt-alert.html#step-2-add-a-video-stream)
 
 
 ## 步骤 9. 清理和回滚
@@ -276,7 +289,7 @@ curl -I http://<SPARK_IP_OR_HOSTNAME>:3000
 
 ```bash
 ## For Standard VSS deployment
-scripts/dev-profile.sh down
+deploy/docker/scripts/dev-profile.sh down
 ```
 
 ## 步骤 10. 后续步骤
@@ -284,8 +297,8 @@ scripts/dev-profile.sh down
 部署 VSS 后，您现在可以：
 
 **标准VSS部署：**
-- 在端口 3000 访问完整的 VSS 功能
-- 测试视频摘要和问答功能
+- 在端口 7777 访问完整的 VSS 功能
+- 测试视频和问答功能
 - 配置知识图和图数据库
 - 与现有视频处理工作流程集成
 
